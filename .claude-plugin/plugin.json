@@ -1,0 +1,8 @@
+{
+  "name": "rw-ai-workflow",
+  "version": "0.1.0",
+  "description": "Claude plans and verifies, Codex implements in per-issue worktrees, Antigravity reviews (or implements on request). Nothing is added to the project's git repo.",
+  "author": { "name": "RichardstGG" },
+  "repository": "https://github.com/RichardstGG/rw-ai-workflow",
+  "keywords": ["codex", "antigravity", "cursor", "worktree", "github-issues", "draft-pr"]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "rw-ai-workflow",
+  "owner": {
+    "name": "RichardstGG"
+  },
+  "metadata": {
+    "description": "Claude + Codex + Antigravity issue-to-draft-PR workflow"
+  },
+  "plugins": [
+    {
+      "name": "rw-ai-workflow",
+      "source": "./",
+      "description": "Claude plans and verifies, Codex implements in per-issue worktrees, Antigravity reviews. Nothing is added to the project's git repo."
+    }
+  ]
+}
