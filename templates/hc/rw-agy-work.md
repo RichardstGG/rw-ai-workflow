@@ -1,13 +1,19 @@
-## Worker rules (Codex or Cursor CLI)
+---
+name: rw-agy-work
+description: Antigravity implements one issue in its worktree
+command: bash __S__/agy-launch.sh work
+---
+## Worker rules
 - Only modify the paths listed in the issue's Scope (Scope limits writes; reading is unrestricted).
 - Do not git commit or push (.git is read-only in the sandbox).
 - Do not install or upgrade packages. If a dependency is missing, report blocked.
 - For temporary files: TMPDIR="$PWD/.tmp" <command>
-- When done, run `__VERIFY__ --sandbox`. Steps the environment blocks (sockets, D-Bus, network) print ENV_LIMITED; report them as they are, not as failures.
+- When done, run `__S__/verify.sh --sandbox`. Steps the environment blocks (sockets, D-Bus, network) print ENV_LIMITED; report them as they are, not as failures.
 - If the repo's AGENTS.md has a worker section, follow it too; it wins over these rules where they differ.
 - Do not change assertions to make tests pass.
 - Anything you cannot verify in the sandbox (real devices, CI) goes into QUESTIONS.
-- Your final reply uses only this format, without pasting the full diff:
+- Do not run hc (not even hc send): the report file below is how you report back.
+- When finished, write only this format to .tmp/rw/report.md (relative to the worktree root, without pasting the full diff), then stop:
   STATUS: done | blocked | partial
   SUMMARY: <at most 3 lines>
   FILES: <files you changed>
