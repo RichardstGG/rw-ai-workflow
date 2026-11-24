@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Test double for hc and gh (symlinked under those names): logs its argv to $STUB_LOG,
+# prints $<PROG>_<SUBCMD>_OUT (e.g. HC_RUN_OUT, GH_PR_OUT) and exits with $<PROG>_<SUBCMD>_RC (default 0).
+prog=$(basename "$0" | tr a-z A-Z)
+echo "$(basename "$0") $*" >> "${STUB_LOG:?}"
+sub=$(printf '%s' "${1:-}" | tr a-z- A-Z_)
+out=${prog}_${sub}_OUT rc=${prog}_${sub}_RC
+if [ -n "${!out:-}" ]; then printf '%s\n' "${!out}"; fi
+exit "${!rc:-0}"

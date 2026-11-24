@@ -5,7 +5,7 @@
 #   $RW_HOME/logs/<owner>__<repo>/issue-N/            prompts, worker output, agy logs
 #   $RW_WORKTREES/<owner>__<repo>/issue-N              one git worktree per issue
 RW_HOME=${RW_HOME:-$HOME/automation}
-RW_WORKTREES=${RW_WORKTREES:-$HOME/worktrees}
+RW_WORKTREES=${RW_WORKTREES:-$HOME/worktree}
 
 # owner/repo from the origin URL (git@host:o/r.git or https://host/o/r)
 rw_slug() { git remote get-url origin | sed -E 's#\.git$##; s#^.*[:/]([^/]+/[^/]+)$#\1#'; }
@@ -19,6 +19,13 @@ rw_load() {
   RW_BASE=${RW_BASE:-main}
   RW_CODEX_NETWORK=false; RW_WRITABLE_ROOTS=(); RW_READ_ROOTS=()
   if [ -f "$RW_PROJECT/config.sh" ]; then . "$RW_PROJECT/config.sh"; fi
+}
+
+# rw_short: the repo name as an hc terminal-name prefix (a-z 0-9 -, at most 20 chars); call after rw_load
+rw_short() {
+  local r; r=$(printf '%s' "${RW_SLUG#*/}" | tr A-Z a-z | sed -E 's/[^a-z0-9]+/-/g; s/^-+//')
+  r=${r:0:20}; while [[ $r == *- ]]; do r=${r%-}; done
+  echo "${r:-repo}"
 }
 
 # rw_verify <worktree>: path of the verify script to use
