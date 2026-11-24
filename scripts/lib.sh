@@ -37,3 +37,23 @@ rw_verify() {
 
 # rw_log_dir N: per-issue log dir (created)
 rw_log_dir() { mkdir -p "$RW_LOGS/issue-$1" && echo "$RW_LOGS/issue-$1"; }
+
+# rw_agy_trust add|rm DIR: add DIR to (or drop it from) agy's trustedWorkspaces, keeping every other setting.
+# agy's trust does not cover subfolders, so each issue worktree needs its own entry, or agy stops at a trust prompt.
+rw_agy_trust() {
+  python3 - "$1" "$2" "$HOME/.gemini/antigravity-cli/settings.json" <<'PY'
+import json, os, sys
+op, d, f = sys.argv[1:]
+try:
+    s = json.load(open(f))
+except FileNotFoundError:
+    if op == "rm": sys.exit(0)
+    s = {}
+t = [x for x in s.get("trustedWorkspaces", []) if x != d]
+if op == "add": t.append(d)
+s["trustedWorkspaces"] = t
+os.makedirs(os.path.dirname(f), exist_ok=True)
+with open(f + ".tmp", "w") as o: json.dump(s, o, indent=2)
+os.replace(f + ".tmp", f)
+PY
+}

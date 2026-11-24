@@ -29,7 +29,7 @@ description: Prepare a repo (or a new machine) for the rw-ai-workflow ai-run flo
 - 在 `~/.codex/config.toml` 信任主 checkout（先備份；Codex 對 worktree 的信任以主 repo 為準）
 - 把 hc template（`rw-codex`、`rw-claude`、`rw-agy-work`、`rw-agy-review`、`rw-agy-review-lite`）裝到 `~/.config/herdr-core/templates/`，填入本 plugin `scripts/` 的絕對路徑；被改過的舊檔先備份成 `.bak.rw-ai-workflow`。plugin 更新後路徑會變，要重跑 setup。
 hc server 沒在跑時 setup 會以 1 結束：請使用者 `hc server start`。跑完把輸出告訴使用者。
-另外提醒使用者：agy 和 claude 第一次在新的 worktree 啟動時會問要不要信任資料夾，終端機會停在 blocked，要 attach 進去選擇。claude 信任上層資料夾就涵蓋子資料夾，所以可以先在 `~/worktree` 跑一次 `claude` 並選信任；agy 每個 worktree 都會問一次。
+另外提醒使用者：claude 第一次在新的 worktree 啟動時會問要不要信任資料夾，終端機會停在 blocked，要 attach 進去選擇。claude 信任上層資料夾就涵蓋子資料夾，所以可以先在 `~/worktree` 跑一次 `claude` 並選信任。agy 不用處理：`agy-launch.sh` 會自動把該 issue 的 worktree 加進 agy 的 `trustedWorkspaces`，cleanup 時再移除。
 
 ## 3. 專案專屬設定
 - 編輯 `~/automation/projects/<owner>__<repo>/config.sh`：base branch、Codex sandbox 要不要網路、要額外寫入的目錄（SDK、套件快取）、agy 要額外讀取的目錄。model 和 effort 寫在 `~/.config/herdr-core/templates/rw-*.md` 的 `command` 裡（重跑 setup 會覆蓋，覆蓋前會備份）。依專案工具鏈判斷，把設定與理由告訴使用者。

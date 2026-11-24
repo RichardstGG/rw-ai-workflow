@@ -38,6 +38,15 @@ check "review: stale review removed" "$( [ -e "$logs/review.md" ] && echo kept |
 launch review gemini-3.8-flash-high
 check_has "review: model argument" "$log" "--model gemini-3.8-flash-high"
 
+# trust: only worktrees under RW_WT/<owner>__<repo>/issue-N, once each, other settings kept
+agyset=$HOME/.gemini/antigravity-cli/settings.json
+check_lacks "trust: folder outside the worktree root not trusted" "$(cat "$agyset" 2>/dev/null)" "$wt"
+mkdir -p "$(dirname "$agyset")"; echo '{"trustedWorkspaces":["/keep"],"theme":"x"}' > "$agyset"
+wt2=$HOME/worktree/alice__RoadScope/issue-8; git worktree add -q -b issue-8 "$wt2"
+(cd "$wt2" && "$S/agy-launch.sh" work >/dev/null 2>&1); (cd "$wt2" && "$S/agy-launch.sh" work >/dev/null 2>&1)
+check "trust: worktree added once" "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["trustedWorkspaces"])' "$agyset")" "['/keep', '$wt2']"
+check_has "trust: other settings kept" "$(cat "$agyset")" '"theme": "x"'
+
 launch bogus
 check "unknown mode: exit 64" "$code" 64
 

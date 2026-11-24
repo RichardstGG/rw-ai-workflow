@@ -34,7 +34,7 @@ description: Run one ai:ready GitHub issue through Codex (Antigravity or Claude 
   3. 等額度恢復
   改派前先 `hc kill`／`hc rm` 舊的 worker，任務檔附 `git diff` 請新的實作者接續。
 - Finalize 2 的重派、Apply review 都沿用該 issue 目前的實作者（task-state 的 `WORKER`）；遇額度不足時同上詢問。
-- agy 和 claude 第一次在某個資料夾啟動會詢問是否信任，終端機會變成 `blocked`，照上面的規則請使用者 attach 處理。
+- claude 第一次在某個資料夾啟動會詢問是否信任，終端機會變成 `blocked`，照上面的規則請使用者 attach 處理。agy 的信任由 `agy-launch.sh` 自動寫入（只限本 repo 的 issue worktree），仍出現信任詢問時一樣請使用者處理。
 - `rw-claude` 只自動接受編輯，git／gh／hc 一律禁止；它要跑其他指令（例如 verify）時會停在權限詢問，同樣請使用者 attach 決定。
 - Antigravity 實作時，commit 訊息註明 `Implemented by Antigravity via rw-ai-workflow`；Claude Sonnet 實作時註明 `Implemented by Claude Sonnet via rw-ai-workflow`。
 

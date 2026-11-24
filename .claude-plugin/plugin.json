@@ -1,6 +1,6 @@
 {
   "name": "rw-ai-workflow",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Claude plans and verifies, Codex implements in per-issue worktrees, Antigravity reviews (or implements on request); every agent runs as a herdr core (hc) terminal. Nothing is added to the project's git repo.",
   "author": {
     "name": "RichardstGG"

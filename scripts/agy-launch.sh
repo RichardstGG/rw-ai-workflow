@@ -6,6 +6,7 @@
 #             prompt with -i; agy writes $RW_LOGS/issue-N/review.md. Both files sit outside the worktree because an agy
 #             deny on the worktree also beats any allow under it, and agy's sandbox cannot reach a worktree's gitdir.
 #             Review runs no commands at all (command(*) denied), so text in a diff cannot make it run one.
+# Trusts the issue worktree in agy's settings first (agy asks for every new folder otherwise).
 # Always denied: gh, git and hc (hc's messages invite an `hc send`, which would only stop at a permission prompt).
 # models: work $AGY_WORK_MODEL (default gemini-4-argon-high), review $AGY_MODEL (default gemini-4-hydrogen-high).
 # exit: execs agy | 1 empty diff (review) | 3 agy not installed | 64 usage
@@ -14,6 +15,8 @@ mode=${1:-}; model=${2:-}
 command -v agy >/dev/null || { echo "agy not found" >&2; exit 3; }
 . "$(dirname "$0")/lib.sh"; rw_load
 wt=$(git rev-parse --show-toplevel)
+# Trust only the worktrees new-worktree.sh makes, so agy starts without a trust prompt; cleanup.sh drops the entry.
+if [[ ($mode == work || $mode == review) && $wt == "$RW_WT"/issue-* ]]; then rw_agy_trust add "$wt"; fi
 settings() { python3 -c 'import json,sys; a,d=json.loads(sys.argv[1]),json.loads(sys.argv[2]); print(json.dumps({"permissions": {"allow": a, "deny": d + ["command(gh)", "command(git)", "command(hc)"]}}))' "$1" "$2"; }
 case "$mode" in
   work)

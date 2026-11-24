@@ -5,6 +5,8 @@ git branch ai/issue-101   # at origin/main, so it counts as merged
 "$S/task-state.sh" 101 TERM_ISSUE=roadscope-101 >/dev/null
 state=$HOME/automation/task-state/alice__RoadScope/issue-101.env
 
+agyset=$HOME/.gemini/antigravity-cli/settings.json; wt101=$HOME/worktree/alice__RoadScope/issue-101
+mkdir -p "$(dirname "$agyset")"; printf '{"trustedWorkspaces":["/keep","%s"]}' "$wt101" > "$agyset"
 export HC_LS_OUT='{"terminals":[{"address":"t4","name":"roadscope-101","state":"live"},{"address":"t5","name":"roadscope-101-verify","state":"finished"}]}'
 code=0; "$S/cleanup.sh" 101 >/dev/null 2>&1 || code=$?
 log=$(cat "$STUB_LOG")
@@ -13,6 +15,7 @@ check_has "lists only this repo's issue" "$log" "hc ls --all --json --label rw_r
 check "kills only live terminals" "$(grep -c '^hc kill' <<<"$log")" 1
 check_has "kills the live one" "$log" "hc kill t4"
 check "removes every terminal" "$(grep -c '^hc rm' <<<"$log")" 2
+check "agy trust entry dropped" "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["trustedWorkspaces"])' "$agyset")" "['/keep']"
 check "state removed" "$([ -e "$state" ] && echo yes || echo no)" no
 check_has "closes the issue" "$log" "gh issue close 101 --repo alice/RoadScope"
 check_has "drops ai:review" "$log" "gh issue edit 101 --repo alice/RoadScope --remove-label ai:review"
