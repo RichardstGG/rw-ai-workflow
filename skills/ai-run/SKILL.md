@@ -43,7 +43,7 @@ description: Run one ai:ready GitHub issue through Codex (Antigravity or Claude 
 1. 規劃：和使用者討論技術方案，把決定寫進 issue 本文（**Scope**、**Done when**、技術方案與理由）。issue Claude 從零開始，只看得到 issue。`gh issue create` 要經使用者同意，新 issue 標 `ai:proposed`。
 2. 使用者說「派工 #N [#M …]」：
    - 先在主對話內做 Dispatch 2 的 Scope 重疊檢查（包含這批 issue 彼此之間的重疊），有重疊就停下來說明。
-   - 每個 issue 寫一個任務檔 `$log/issue-task.md`，內容：`開跑 #N`（指定實作者時 `開跑 #N agy`／`開跑 #N claude`）、版本目標、這個 issue 和其他 issue 的關係，以及「完成或 blocked 時用 `$S/hc-tell.sh parent "<一行結論>"` 回報」（`$S` 寫成絕對路徑）。
+   - 每個 issue 寫一個任務檔 `$log/issue-task.md`，第一行是 `/rw-ai-workflow:ai-run 開跑 #N`（指定實作者時 `開跑 #N agy`／`開跑 #N claude`），第二行是「照 ai-run skill 的 Dispatch／Finalize 執行，不要自己實作或修改主 checkout」（issue Claude 不一定會自己對到 skill；在 plugin 自己的 repo 裡它曾直接動手改程式），接著是版本目標、這個 issue 和其他 issue 的關係，以及「完成或 blocked 時用 `$S/hc-tell.sh parent "<一行結論>"` 回報」（`$S` 寫成絕對路徑）。
    - `$S/hc-spawn.sh N issue "claude --model sonnet" $log/issue-task.md`（issue Claude 帶 `--outlive-parent`，主 Claude 重開不影響它）。
 3. issue Claude 的回報、以及 hc 在它 blocked／結束時的通知，會自動成為主對話的訊息；需要等待時用 `hc wait --children any --timeout 600 --json`。收到後只用一行告訴使用者：PR 連結、agy 結論（ready／draft）、待人工驗證的項目。blocked 時轉述 QUESTIONS。
 4. review 意見在該 issue 的 issue Claude 裡處理，merge 後的 Cleanup 在主對話跑（見最後一節）；使用者在主對話說「PR #X 有 comment」時，用 `$S/hc-tell.sh N "PR #X 有 comment"` 轉過去，不在主對話修。它以 exit 1 結束（issue Claude 已結束）時，先 `hc rm <r>-N`，再照第 2 步重新啟動一個，任務檔寫「PR #X 有 comment」。
