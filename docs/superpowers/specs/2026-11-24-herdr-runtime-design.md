@@ -169,7 +169,7 @@ plugin 新增 `templates/hc/`，`setup.sh` 會把裡面的檔案複製到 `~/.co
    - codex：`setup.sh` 已經把主 repo 設為信任，worktree 會沿用（維持現狀）。
    - claude：信任父目錄就涵蓋子目錄。README 請使用者第一次使用 `rw-claude` 前，在 `~/worktree` 啟動一次 claude 並選擇信任。
    - agy：信任記在 `~/.gemini/antigravity-cli/settings.json` 的 `trustedWorkspaces`，**不會**涵蓋子目錄，每個新 worktree 都會跳一次。
-     plugin 不自動寫入信任（這是使用者的安全決定）；reviewer 或 agy worker 停在信任對話框時會變成 `blocked`，照「需要人的時候」的流程由使用者 attach 處理。
+     使用者後來決定自動信任：`agy-launch.sh` 只把 `$RW_WT/issue-*` 加進 `trustedWorkspaces`（agy 一律在 `--sandbox` 下跑，且禁止 git、gh、hc），`cleanup.sh` 移除 worktree 時一併拿掉這一筆。
 3. **Codex 的 sandbox**：`workspace-write` 下可以寫 `.tmp/rw/`。
 4. **agy 互動模式**：`agy -i "<task>"` 可以和 `--sandbox`、`--settings`、`--model`、`--add-dir` 一起用。位置參數當 prompt 會以 exit 2 結束。
    - 互動模式預設是 auto mode（編輯和安全的指令自動核准），所以 settings 沒有 deny 的地方都寫得進去。

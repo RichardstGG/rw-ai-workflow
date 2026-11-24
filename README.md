@@ -54,7 +54,8 @@ hc attach <r>-101-work              # watch or take over the worker
 ```
 
 A terminal that waits for a person (a trust-this-folder prompt, a permission request) shows as `blocked`; Claude tells you which one to attach to.
-agy and claude ask once per new folder whether to trust it. For claude, trusting `~/worktree` once covers every worktree; agy asks in each worktree.
+claude asks once per new folder whether to trust it; trusting `~/worktree` once covers every worktree.
+agy's trust does not cover subfolders, so `agy-launch.sh` adds each issue worktree to `trustedWorkspaces` in `~/.gemini/antigravity-cli/settings.json` (only paths under `~/worktree/<owner>__<repo>/issue-*`), and `cleanup.sh` removes the entry.
 
 ## Use
 
