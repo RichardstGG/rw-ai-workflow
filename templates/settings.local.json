@@ -12,13 +12,16 @@
       "Bash(gh issue view *)", "Bash(gh issue list *)", "Bash(gh issue edit *)", "Bash(gh issue comment *)",
       "Bash(gh pr view *)", "Bash(gh pr diff *)", "Bash(gh pr checks *)", "Bash(gh pr comment *)",
       "Bash(gh pr create --draft --repo __REPO__ *)",
-      "Bash(python3 -m json.tool *)"
+      "Bash(python3 -m json.tool *)",
+      "Bash(hc run *)", "Bash(hc send *)", "Bash(hc wait *)", "Bash(hc read *)", "Bash(hc get *)",
+      "Bash(hc ls *)", "Bash(hc ls)", "Bash(hc label *)", "Bash(hc kill *)", "Bash(hc rm *)"
     ],
     "deny": [
       "Bash(codex *)",
       "Bash(gh pr merge *)",
       "Bash(git push --force *)", "Bash(git push -f *)",
       "Bash(git push * --force*)", "Bash(git push * -f *)", "Bash(git push * +*)",
+      "Bash(hc server *)", "Bash(hc send --force *)", "Bash(hc send * --force*)",
       "Bash(sudo *)", "Bash(apt *)", "Bash(apt-get *)"
     ]
   }
