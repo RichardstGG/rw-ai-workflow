@@ -81,4 +81,4 @@ description: Run one ai:ready GitHub issue through Codex (Antigravity or Claude 
 
 ## Cleanup（PR merge 後，在主對話執行）
 它會結束這個 issue 的 issue Claude，所以不要在 issue Claude 裡跑。
-`$S/cleanup.sh N`（結束並移除這個 issue 的 hc 終端機、移除 worktree、刪已 merge 的本地分支、清掉 task-state；log 保留）。
+`$S/cleanup.sh N`（結束並移除這個 issue 的 hc 終端機、移除 worktree、刪已 merge 的本地分支、關閉 issue 並移除 `ai:review`（base 不是預設分支時 GitHub 不會自動關）、清掉 task-state；log 保留）。

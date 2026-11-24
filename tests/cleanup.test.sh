@@ -14,6 +14,13 @@ check "kills only live terminals" "$(grep -c '^hc kill' <<<"$log")" 1
 check_has "kills the live one" "$log" "hc kill t4"
 check "removes every terminal" "$(grep -c '^hc rm' <<<"$log")" 2
 check "state removed" "$([ -e "$state" ] && echo yes || echo no)" no
+check_has "closes the issue" "$log" "gh issue close 101 --repo alice/RoadScope"
+check_has "drops ai:review" "$log" "gh issue edit 101 --repo alice/RoadScope --remove-label ai:review"
+
+# gh failing must not abort the cleanup
+git branch ai/issue-104; : > "$STUB_LOG"
+code=0; GH_ISSUE_RC=1 HC_LS_OUT='{"terminals":[]}' "$S/cleanup.sh" 104 >/dev/null 2>&1 || code=$?
+check "gh fails: still exit 0" "$code" 0
 
 # Review Focus 5: nothing to clean in hc
 git branch ai/issue-102; : > "$STUB_LOG"
