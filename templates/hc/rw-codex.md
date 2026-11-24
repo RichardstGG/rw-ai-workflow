@@ -5,10 +5,10 @@ command: codex --no-daemon --sandbox workspace-write --ask-for-approval never
 ---
 ## Worker rules
 - Only modify the paths listed in the issue's Scope (Scope limits writes; reading is unrestricted).
-- Do not git commit or push (.git is read-only in the sandbox).
+- Do not git commit or push; Claude commits after verifying on the host.
 - Do not install or upgrade packages. If a dependency is missing, report blocked.
 - For temporary files: TMPDIR="$PWD/.tmp" <command>
-- When done, run `__S__/verify.sh --sandbox`. Steps the environment blocks (sockets, D-Bus, network) print ENV_LIMITED; report them as they are, not as failures.
+- When done, run `__S__/verify.sh --sandbox`. Steps the environment blocks (sockets, D-Bus, network) print ENV_LIMITED; report them as they are, not as failures. If you cannot run verify at all here, write ENV_LIMITED: verify and go on (the host verify is what counts).
 - If the repo's AGENTS.md has a worker section, follow it too; it wins over these rules where they differ.
 - Do not change assertions to make tests pass.
 - Anything you cannot verify in the sandbox (real devices, CI) goes into QUESTIONS.

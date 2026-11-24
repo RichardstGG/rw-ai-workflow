@@ -5,6 +5,7 @@
 #   review -> writes origin/<base>...HEAD to $RW_LOGS/issue-N/review.diff, worktree read-only, and passes the review
 #             prompt with -i; agy writes $RW_LOGS/issue-N/review.md. Both files sit outside the worktree because an agy
 #             deny on the worktree also beats any allow under it, and agy's sandbox cannot reach a worktree's gitdir.
+#             Review runs no commands at all (command(*) denied), so text in a diff cannot make it run one.
 # Always denied: gh, git and hc (hc's messages invite an `hc send`, which would only stop at a permission prompt).
 # models: work $AGY_WORK_MODEL (default gemini-4-argon-high), review $AGY_MODEL (default gemini-4-hydrogen-high).
 # exit: execs agy | 1 empty diff (review) | 3 agy not installed | 64 usage
@@ -31,6 +32,6 @@ Write your review to $log/review.md in Traditional Chinese (Taiwan) markdown: on
 If there is nothing worth fixing, say so in one line.
 End the file with exactly one last line: VERDICT: APPROVE if nothing must be fixed before merge, otherwise VERDICT: CHANGES. Then stop."
     exec agy --model "${model:-${AGY_MODEL:-gemini-4-hydrogen-high}}" --sandbox --add-dir "$log" \
-      --settings "$(settings "$allow" "$(python3 -c 'import json,sys; print(json.dumps([f"write_file({sys.argv[1]})"]))' "$wt")")" -i "$prompt" ;;
+      --settings "$(settings "$allow" "$(python3 -c 'import json,sys; print(json.dumps([f"write_file({sys.argv[1]})", "command(*)"]))' "$wt")")" -i "$prompt" ;;
   *) echo "usage: agy-launch.sh work|review [MODEL]" >&2; exit 64 ;;
 esac

@@ -35,6 +35,8 @@ allow=$(python3 -c 'import json,sys; print("\n".join(json.load(open(sys.argv[1])
 check_has "deny hc server" "$deny" "Bash(hc server *)"
 check_has "deny hc send --force" "$deny" "Bash(hc send --force *)"
 check_has "allow hc wait" "$allow" "Bash(hc wait *)"
+check_lacks "no raw hc run (bypasses deny)" "$allow" "Bash(hc run"
+check_lacks "no raw hc send (bypasses deny)" "$allow" "Bash(hc send"
 check "exclude entries" "$(grep -v '^#' .git/info/exclude)" "$(printf '.tmp/\n.codex/\n.claude/settings.local.json')"
 check_lacks "config template: no CODEX_MODEL" "$(cat "$HOME/automation/projects/alice__RoadScope/config.sh")" "CODEX_MODEL"
 

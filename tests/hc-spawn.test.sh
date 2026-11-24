@@ -28,10 +28,10 @@ check_lacks "work: ends with its parent" "$run" "--outlive-parent"
 check_has "work: state records the worker" "$(cat "$state")" "WORKER=rw-codex"
 check_has "work: state records the terminal" "$(cat "$state")" "TERM_WORK=roadscope-101-work"
 
-"$S/hc-spawn.sh" 101 verify "bash /abs/verify.sh" >/dev/null; run=$(last_run)
+"$S/hc-spawn.sh" 101 verify "bash $S/verify.sh" >/dev/null; run=$(last_run)
 check_has "verify: no exit note" "$run" "--no-notify"
 check_lacks "verify: kept for hc read" "$run" "--rm"
-check_has "verify: no task appended" "$run" "bash /abs/verify.sh"
+check_has "verify: no task appended" "$run" "bash $S/verify.sh"
 
 # Review Focus 1: task not delivered
 rm "$state"; "$S/task-state.sh" 101 WORKTREE="$T/wt" >/dev/null
@@ -52,5 +52,13 @@ code=0; "$S/hc-spawn.sh" '#101' issue claude >/dev/null 2>&1 || code=$?
 check "non-numeric issue: usage error" "$code" 64
 code=0; "$S/hc-spawn.sh" 101 boss claude >/dev/null 2>&1 || code=$?
 check "unknown role: usage error" "$code" 64
+
+# only the workflow's own programs: an allowed hc-spawn.sh must not run arbitrary commands
+for bad in "work|gh pr merge 5" "verify|bash -c x" "issue|bash" "review|codex" "work|rw-codex; rm -rf x" "verify|bash /other/verify.sh"; do
+  : > "$STUB_LOG"; code=0; "$S/hc-spawn.sh" 101 "${bad%%|*}" "${bad#*|}" >/dev/null 2>&1 || code=$?
+  check "refuses ${bad%%|*} '${bad#*|}'" "$code" 64
+  check "refuses ${bad%%|*} '${bad#*|}': no hc run" "$(grep -c '^hc run' "$STUB_LOG" || true)" 0
+done
+out=$("$S/hc-spawn.sh" 101 review rw-agy-review-lite); check "review template allowed" "$out" roadscope-101-review
 
 finish

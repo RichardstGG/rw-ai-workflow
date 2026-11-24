@@ -67,6 +67,7 @@ agy and claude ask once per new folder whether to trust it. For claude, trusting
 
 If Codex hits its usage limit, Claude stops and asks: Antigravity, Claude Sonnet, or wait.
 You merge PRs yourself; the plugin's permissions deny `gh pr merge`, force pushes, `hc server *` and `hc send --force`.
+Claude starts terminals only through `hc-spawn.sh` (which accepts only the workflow's own programs) and talks to them only through `hc-tell.sh`; raw `hc run` and `hc send` are not allowed, since they could run any command.
 
 ## Per-project verify
 

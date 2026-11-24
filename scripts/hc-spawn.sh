@@ -5,7 +5,8 @@
 #   ROLE work   -> <r>-N-work    in the issue's worktree
 #   ROLE verify -> <r>-N-verify  in the issue's worktree, --no-notify (kept until read; remove with hc rm)
 #   ROLE review -> <r>-N-review  in the issue's worktree
-# PROGRAM is an hc template name (rw-codex) or a command string ("claude --model sonnet"), split on spaces.
+# PROGRAM is limited to the workflow's own programs, so allowing this script never allows arbitrary commands:
+#   issue "claude --model sonnet" | work, review: an rw-* hc template | verify "bash <this dir>/verify.sh"
 # TASK_FILE's content becomes the launch task (the agent's first message).
 # Labels: rw_repo, rw_issue, rw_role, rw_agent. Task state gets TERM_<ROLE>=<name> (and WORKER for work).
 # exit: 0 started | 1 hc run failed or the task was not delivered (state untouched) | 64 usage
@@ -15,6 +16,11 @@ usage() { echo "usage: hc-spawn.sh N issue|work|verify|review PROGRAM [TASK_FILE
 [ $# -ge 3 ] || usage
 n=$1 role=$2 prog=$3 task=${4:-}
 [[ $n =~ ^[0-9]+$ ]] || usage "N must be a number"
+case "$role:$prog" in
+  "issue:claude --model sonnet" | "verify:bash $(cd "$(dirname "$0")" && pwd)/verify.sh") ;;
+  work:rw-* | review:rw-*) [[ $prog =~ ^rw-[a-z0-9-]+$ ]] || usage "not an rw-* template: $prog" ;;
+  issue:* | work:* | verify:* | review:*) usage "program not allowed for $role: $prog" ;;
+esac
 read -ra argv <<<"$prog"
 name=$(rw_short)-$n
 args=(--bg --json --label "rw_repo=${RW_SLUG/\//__}" --label "rw_issue=$n" --label "rw_role=$role" --label "rw_agent=${argv[0]}")

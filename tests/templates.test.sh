@@ -10,7 +10,7 @@ for n in rw-codex rw-claude rw-agy-work rw-agy-review rw-agy-review-lite; do
   check_has "$n: has description" "$( [ -f "$f" ] && field "$f" description)" " "
 done
 check "rw-codex command" "$(field "$D/rw-codex.md" command 2>/dev/null)" "codex --no-daemon --sandbox workspace-write --ask-for-approval never"
-check "rw-claude command" "$(field "$D/rw-claude.md" command 2>/dev/null)" "claude --model sonnet"
+check "rw-claude command" "$(field "$D/rw-claude.md" command 2>/dev/null)" 'claude --model sonnet --permission-mode acceptEdits --disallowedTools "Bash(git:*)" "Bash(gh:*)" "Bash(hc:*)"'
 check "rw-agy-work command" "$(field "$D/rw-agy-work.md" command 2>/dev/null)" "bash __S__/agy-launch.sh work"
 check "rw-agy-review command" "$(field "$D/rw-agy-review.md" command 2>/dev/null)" "bash __S__/agy-launch.sh review"
 check "rw-agy-review-lite command" "$(field "$D/rw-agy-review-lite.md" command 2>/dev/null)" "bash __S__/agy-launch.sh review gemini-3.8-flash-high"
@@ -20,6 +20,8 @@ check_has "worker body: writes the report file" "$w" ".tmp/rw/report.md"
 check_has "worker body: verify path" "$w" "__S__/verify.sh --sandbox"
 check_has "worker body: report format" "$w" "COMMIT_MESSAGE:"
 check_has "worker body: no hc" "$w" "Do not run hc"
+check_has "worker body: verify may be unavailable" "$w" "cannot run verify"
+check_lacks "worker body: no sandbox claim about .git" "$w" "read-only in the sandbox"
 check_lacks "worker body: no old placeholder" "$w" "__VERIFY__"
 check "rw-claude body = rw-codex body" "$(body "$D/rw-claude.md" 2>/dev/null)" "$w"
 check "rw-agy-work body = rw-codex body" "$(body "$D/rw-agy-work.md" 2>/dev/null)" "$w"
