@@ -48,9 +48,11 @@ except ValueError:
 
 if not isinstance(result, dict):
     sys.exit(1)
-message = result.get("first_message", {"sent": True})
+if not sys.argv[2] and "first_message" not in result:
+    sys.exit(0)
+message = result.get("first_message")
 sys.exit(0 if isinstance(message, dict) and message.get("sent") is True else 1)
-' "$out"; then
+' "$out" "$task"; then
   echo "task not delivered to $name; run: hc read $name" >&2
   exit 1
 fi
