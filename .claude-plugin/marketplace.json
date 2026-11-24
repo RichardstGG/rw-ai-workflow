@@ -4,13 +4,13 @@
     "name": "RichardstGG"
   },
   "metadata": {
-    "description": "Claude + Codex + Antigravity issue-to-draft-PR workflow"
+    "description": "Claude + Codex + Antigravity issue-to-draft-PR workflow on herdr core"
   },
   "plugins": [
     {
       "name": "rw-ai-workflow",
       "source": "./",
-      "description": "Claude plans and verifies, Codex implements in per-issue worktrees, Antigravity reviews. Nothing is added to the project's git repo."
+      "description": "Claude plans and verifies, Codex implements in per-issue worktrees, Antigravity reviews (or implements on request); every agent runs as a herdr core (hc) terminal. Nothing is added to the project's git repo."
     }
   ]
 }
