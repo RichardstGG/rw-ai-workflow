@@ -19,6 +19,7 @@
 ## 非目標
 
 - 不支援 Claude 桌面版的 `start_session` 路徑，也不保留沒有 hc 時的退路：hc 是必要條件。
+- 移除 Cursor CLI 的支援（使用者決定）。Codex 額度用完時的選項改為：Antigravity（agy work）、Claude（`rw-claude` template，在 hc 裡當 worker）、等額度恢復。
 - 不負責 herdr 的視窗排版（那是 `herdr-app` 的事）；使用者自己用 herdr app 或 `hc attach` 觀看。
 - 使用者只觀看，不在流程中插話；需要人時（`blocked`）才 attach 處理。
 
@@ -98,7 +99,7 @@ plugin 新增 `templates/hc/`，`setup.sh` 會把裡面的檔案複製到 `~/.co
 | template | command | 用途 |
 |---|---|---|
 | `rw-codex` | `codex --no-daemon --sandbox workspace-write --ask-for-approval never` | 預設實作者 |
-| `rw-cursor` | `cursor-agent --sandbox enabled --trust`（互動模式） | `開跑 #N cursor` |
+| `rw-claude` | `claude --model sonnet`（互動模式） | Codex 額度用完時改派 |
 | `rw-agy-work` | `bash <S>/agy-launch.sh work`（互動模式） | `agy work` |
 | `rw-agy-review` | `bash <S>/agy-launch.sh review`（互動模式） | 每個 PR 的 review |
 | `rw-agy-review-lite` | `bash <S>/agy-launch.sh review gemini-3.8-flash-high` | 主要模型 review 失敗時的替代方案 |
@@ -131,7 +132,8 @@ plugin 新增 `templates/hc/`，`setup.sh` 會把裡面的檔案複製到 `~/.co
 | 檔案 | 異動 |
 |---|---|
 | `scripts/companion.sh`、`codex-wait.sh`、`codex-result.sh` | 刪除（不再依賴 openai-codex plugin 的 codex-companion） |
-| `scripts/cursor-task.sh`、`agy-work.sh` | 刪除，改用 template（agy 改由 `agy-launch.sh` 啟動） |
+| `scripts/cursor-task.sh` | 刪除（不再支援 Cursor） |
+| `scripts/agy-work.sh` | 刪除，改由 template 呼叫 `agy-launch.sh` 啟動 |
 | `scripts/agy-launch.sh`（新增） | 依模式產生 agy settings、review 前先算 diff，再 `exec agy` |
 | `scripts/agy-review.sh` | 改為 `post-review.sh`：只負責貼 comment、判斷 VERDICT、`gh pr ready` |
 | `scripts/hc-spawn.sh`（新增） | 統一處理名稱、label、cwd、`--outlive-parent`、model 參數，並檢查 `first_message.sent`；印出終端機名稱 |
@@ -149,9 +151,9 @@ plugin 新增 `templates/hc/`，`setup.sh` 會把裡面的檔案複製到 `~/.co
 ## 交給實作者的部分
 
 - 下面的驗證項目要**先在 VM 上用一次性的小實驗確認**，再寫正式程式碼；確認結果寫回這份文件：
-  1. `hc ls` 時 codex、claude、agy、cursor-agent 有沒有送出狀態（`get` 的 status 不為空）。
+  1. `hc ls` 時 codex、claude、agy 有沒有送出狀態（`get` 的 status 不為空）。
      沒有狀態的 agent，`hc wait` 會一直等到它結束：這種情況改成在 hc 裡跑一個等報告檔出現的小程式，再 `hc wait` 那個程式。
-  2. agy 和 cursor-agent 的互動模式是否支援目前 `-p` 模式用的 `--sandbox`、`--settings` 等參數。
+  2. agy 的互動模式是否支援目前 `-p` 模式用的 `--sandbox`、`--settings` 等參數。
   3. Codex 在 `workspace-write` sandbox 下能不能寫 `.tmp/rw/`（應該可以，`.tmp/` 在 worktree 內）。
   4. 第一次在 worktree 啟動 Codex 時會不會跳出信任對話框（skill 提到可能要 `hc keys <t> down enter`）；跳出的話，由 hc-spawn.sh 處理，或在 setup 時就設定信任。
 - `hc-spawn.sh` 的參數設計、名稱和 label 的細節、template 的確切內文。

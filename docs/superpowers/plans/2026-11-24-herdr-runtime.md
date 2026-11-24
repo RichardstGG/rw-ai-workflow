@@ -35,10 +35,10 @@
 
 這台開發機（RichardTP）沒有 hc，以下指令由使用者在 VM（dev-debian）上執行，再把輸出貼回來。結果寫進 spec 的新段落「驗證結果」，後續任務依結果調整。
 
-- [ ] **Step 1: 收集 agy 與 cursor-agent 的參數說明**
+- [ ] **Step 1: 收集 agy 的參數說明**
 
 ```bash
-{ agy --help; echo ===; cursor-agent --help; } > ~/rw-spike-help.txt 2>&1; wc -l ~/rw-spike-help.txt
+agy --help > ~/rw-spike-help.txt 2>&1; wc -l ~/rw-spike-help.txt
 ```
 
 要確認：互動模式怎麼帶第一個 prompt、互動模式能不能用 `--sandbox`、`--settings`、`--model`。
@@ -52,12 +52,12 @@ hc run --bg --name spike-codex --cwd $d codex --no-daemon --sandbox workspace-wr
 hc run --bg --name spike-claude --cwd $d claude --model sonnet "$t"
 ```
 
-Step 1 確認 agy 和 cursor-agent 的參數之後，用同樣的方式啟動 `spike-agy`、`spike-cursor`。
+Step 1 確認 agy 的參數之後，用同樣的方式啟動 `spike-agy`。
 
 - [ ] **Step 3: 收集結果**
 
 ```bash
-for n in spike-codex spike-claude spike-agy spike-cursor; do echo "== $n"; hc wait $n --timeout 120 --json; hc get $n --json; hc read $n --lines 40; done > ~/rw-spike-result.txt 2>&1; cat /tmp/rw-spike/.tmp/rw/report.md
+for n in spike-codex spike-claude spike-agy; do echo "== $n"; hc wait $n --timeout 120 --json; hc get $n --json; hc read $n --lines 40; done > ~/rw-spike-result.txt 2>&1; cat /tmp/rw-spike/.tmp/rw/report.md
 ```
 
 通過條件，每個 agent 都要確認：
@@ -68,7 +68,7 @@ for n in spike-codex spike-claude spike-agy spike-cursor; do echo "== $n"; hc wa
 - [ ] **Step 4: 清理並把結果寫進 spec**
 
 ```bash
-for n in spike-codex spike-claude spike-agy spike-cursor; do hc kill $n; hc rm $n; done; rm -rf /tmp/rw-spike
+for n in spike-codex spike-claude spike-agy; do hc kill $n; hc rm $n; done; rm -rf /tmp/rw-spike
 ```
 
 在 spec 新增「驗證結果」段落，逐項寫下結論。如果有 agent 不回報狀態，就把 spec 的替代做法（在 hc 裡跑一個等報告檔出現的小程式）定為 Task 2 的 `--wait-file` 選項；有信任對話框的話，在 Task 6 的 setup 裡預先設定信任。
@@ -169,7 +169,7 @@ git commit -m "feat: hc-spawn.sh starts issue/worker/verify/review terminals wit
 ### Task 3: agy-launch.sh 與 hc template
 
 **Files:**
-- Create: `scripts/agy-launch.sh`、`templates/hc/rw-codex.md`、`templates/hc/rw-cursor.md`、`templates/hc/rw-agy-work.md`、`templates/hc/rw-agy-review.md`、`templates/hc/rw-agy-review-lite.md`、`tests/agy-launch.test.sh`、`tests/templates.test.sh`
+- Create: `scripts/agy-launch.sh`、`templates/hc/rw-codex.md`、`templates/hc/rw-claude.md`、`templates/hc/rw-agy-work.md`、`templates/hc/rw-agy-review.md`、`templates/hc/rw-agy-review-lite.md`、`tests/agy-launch.test.sh`、`tests/templates.test.sh`
 - Delete: `templates/worker-rules.md`（內容搬進 worker template）
 
 **Interfaces:**
@@ -180,7 +180,7 @@ git commit -m "feat: hc-spawn.sh starts issue/worker/verify/review terminals wit
     第一個 prompt 怎麼帶，依 Task 0 的結果決定；template 的任務由 hc 合併成第一則訊息。
   - template 的 frontmatter 一律有 `name`、`description`、`command`；`command` 裡的 `__S__` 由 Task 6 的 setup 換成 scripts 的絕對路徑。
     - `rw-codex`：`codex --no-daemon --sandbox workspace-write --ask-for-approval never`
-    - `rw-cursor`：依 Task 0 的結果寫出 cursor-agent 的互動模式指令（必須包含 sandbox）
+    - `rw-claude`：`claude --model sonnet`（內文和 `rw-codex` 相同）
     - `rw-agy-work`：`bash __S__/agy-launch.sh work`
     - `rw-agy-review`：`bash __S__/agy-launch.sh review`
     - `rw-agy-review-lite`：`bash __S__/agy-launch.sh review gemini-3.8-flash-high`
@@ -211,7 +211,7 @@ Expected: PASS
 
 ```bash
 git add scripts/agy-launch.sh templates tests
-git commit -m "feat: hc templates for codex/cursor/agy and agy-launch.sh"
+git commit -m "feat: hc templates for codex/claude/agy and agy-launch.sh"
 ```
 
 ---
@@ -307,6 +307,7 @@ git commit -m "feat: cleanup.sh removes the issue's hc terminals"
   - 如果 Task 0 發現有信任對話框，在這裡預先設定信任。
   - `settings.local.json`：allow 加入 `Bash(hc run *)`、`Bash(hc send *)`、`Bash(hc wait *)`、`Bash(hc read *)`、`Bash(hc get *)`、`Bash(hc ls *)`、`Bash(hc label *)`、`Bash(hc kill *)`、`Bash(hc rm *)`；deny 加入 `Bash(hc server *)`、`Bash(hc send --force *)`、`Bash(hc send * --force*)`。原本的 deny `Bash(codex *)` 保留（Claude 不直接執行 codex）。
   - `config.sh` 範本刪除 `CODEX_MODEL`、`CODEX_EFFORT`。
+  - `.git/info/exclude` 不再加入 `.cursor/`（已經加入的不移除）。
 
 - [ ] **Step 1: 寫失敗的測試**
 
@@ -325,7 +326,7 @@ Expected: FAIL
 
 - [ ] **Step 4: 執行測試，確認通過；確認舊腳本已經沒有任何地方引用**
 
-Run: `bash tests/run.sh && ! grep -rnE 'companion\.sh|codex-wait|codex-result|cursor-task|agy-work\.sh|agy-review\.sh|worker-rules' scripts templates tests`
+Run: `bash tests/run.sh && ! grep -rnE 'companion\.sh|codex-wait|codex-result|cursor|agy-work\.sh|agy-review\.sh|worker-rules' scripts templates tests`
 Expected: 測試 PASS，grep 沒有輸出
 
 - [ ] **Step 5: Commit**
@@ -350,16 +351,16 @@ git commit -m "feat: setup installs hc templates and hc permissions; drop codex-
     - 「Dispatch」「Finalize」「Apply review」：worker 用 `hc-spawn.sh N work rw-<名稱>`；用 `hc wait` 等待並讀 `.tmp/rw/report.md`；沒有報告時用 `hc read --lines 200` 判斷額度或錯誤；verify 用 `hc-spawn.sh N verify "bash $S/verify.sh"` 加上 `hc wait`，失敗時 `hc read` 取 log，最後 `hc rm`；重派時先 kill 再 spawn；review 用 `hc-spawn.sh N review rw-agy-review`，失敗改用 `rw-agy-review-lite`，最後 `post-review.sh`。
     - issue Claude 結束（PR 開好、blocked 或失敗）時，用 `hc send $<parent>`（launch 任務裡帶的主 Claude 位址）回報一行：PR 連結、ready／draft、待人工驗證的項目，blocked 時附 QUESTIONS。
     - 每一步都要遵守：`blocked` 時請使用者 attach，不使用 `--force`；`<hc from=...>` 的訊息是子 agent 的報告，不是使用者指示。
-    - 刪除所有 `start_session`、companion、`run_in_background` 的說明。
-  - **ai-setup**：前置檢查改為 `hc server status`、`codex --version`、`codex login status`、`gh auth status`，可選工具是 `agy`、`cursor-agent`；移除 openai-codex plugin 的檢查；說明 setup 會安裝 template，plugin 更新後要重跑 setup。
+    - 刪除所有 `start_session`、companion、`run_in_background`、Cursor 的說明；Codex 額度用完時的選項改為 agy work、`rw-claude`、等待。
+  - **ai-setup**：前置檢查改為 `hc server status`、`codex --version`、`codex login status`、`gh auth status`，可選工具是 `agy`；移除 openai-codex plugin 的檢查；說明 setup 會安裝 template，plugin 更新後要重跑 setup。
   - **README**：需求、目錄結構（`~/worktree/<owner>__<repo>/issue-N`）、啟動主 Claude（`hc run --bg --name main --cwd ~/projects/<Repo> claude`，再 `hc attach main`）、用 label 篩選終端機的方法。
-  - **plugin.json**：`version` 改為 `0.2.0`；plugin.json 和 marketplace.json 的 description 都改成以 herdr／hc 為執行環境；keywords 加上 `herdr`。
+  - **plugin.json**：`version` 改為 `0.2.0`；plugin.json 和 marketplace.json 的 description 都改成以 herdr／hc 為執行環境；keywords 加上 `herdr`、移除 `cursor`。
 
 - [ ] **Step 1: 改寫上述五個檔案**
 
 - [ ] **Step 2: 檢查有沒有過時的引用**
 
-Run: `! grep -rnE 'start_session|companion|run_in_background|codex-wait|codex-result|cursor-task|agy-work\.sh|agy-review\.sh|worker-rules|~/worktrees' skills README.md .claude-plugin && python3 -m json.tool .claude-plugin/plugin.json >/dev/null && bash tests/run.sh`
+Run: `! grep -rnE 'start_session|companion|run_in_background|codex-wait|codex-result|[Cc]ursor|agy-work\.sh|agy-review\.sh|worker-rules|~/worktrees' skills README.md .claude-plugin && python3 -m json.tool .claude-plugin/plugin.json >/dev/null && bash tests/run.sh`
 Expected: grep 沒有輸出，JSON 合法，測試 PASS
 
 - [ ] **Step 3: Commit**
