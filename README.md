@@ -10,7 +10,7 @@ Nothing is added to the project's git history. Everything the workflow keeps liv
 
 ```
 ~/projects/<Repo>/                  # main checkout (any path works)
-~/worktrees/issue-N/                # one worktree per issue, branch ai/issue-N
+~/worktrees/<owner>__<repo>/issue-N/  # one worktree per issue, branch ai/issue-N
 ~/automation/
 ├── projects/<owner>__<repo>/       # config.sh, optional verify.sh
 ├── task-state/<owner>__<repo>/     # issue-N.env: worker, job id, worktree, PR
@@ -39,7 +39,7 @@ finds or drafts a verify script, and (with your OK) creates the `ai:*` labels.
 
 | You say | What happens |
 |---|---|
-| `開跑 #N` | Codex implements issue N in `~/worktrees/issue-N`, Claude runs verify on the host, pushes `ai/issue-N`, opens a draft PR, agy reviews |
+| `開跑 #N` | Codex implements issue N in `~/worktrees/<owner>__<repo>/issue-N`, Claude runs verify on the host, pushes `ai/issue-N`, opens a draft PR, agy reviews |
 | `開跑 #N cursor` | Same, with Cursor CLI as the implementer |
 | `派工 #N #M` | From a planning conversation: one child session per issue (desktop app), or sequential dispatch (CLI) |
 | `PR #X 有 comment` | Claude turns your review comments into a fix brief for the same implementer |

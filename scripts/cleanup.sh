@@ -4,7 +4,8 @@
 set -euo pipefail
 . "$(dirname "$0")/lib.sh"; rw_load
 n=${1:?issue number}; cd "$RW_MAIN"
-wt=$RW_WORKTREES/issue-$n
+# the recorded path wins, so worktrees made before the per-repo layout still get removed
+wt=$(if [ -f "$RW_STATE/issue-$n.env" ]; then . "$RW_STATE/issue-$n.env"; fi; echo "${WORKTREE:-$RW_WT/issue-$n}")
 if [ -d "$wt" ]; then git worktree remove "$wt"; fi
 git fetch -q --prune
 if git merge-base --is-ancestor "ai/issue-$n" "origin/$RW_BASE"; then git branch -D "ai/issue-$n"

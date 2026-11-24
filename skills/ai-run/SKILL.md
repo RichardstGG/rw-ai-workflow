@@ -9,7 +9,7 @@ description: Run one ai:ready GitHub issue through Codex (Cursor CLI or Antigrav
 - `S` = 本 plugin 的 `scripts/`：`${CLAUDE_PLUGIN_ROOT}/scripts`；變數為空時用本 SKILL.md 所在目錄的 `../../scripts`。以下 `$S/x.sh` 一律寫成絕對路徑。
 - 所有指令在專案的主 checkout 內執行（除非寫明在 worktree）。`<repo>` = `git remote get-url origin` 的 owner/name，`<base>` = `$RW_BASE`（`$S/task-state.sh` 會讀 config；沒設定時用 origin 的預設分支）。所有 `gh` 指令加 `--repo <repo>`。
 - 這個 repo 還沒跑過 ai-setup（`~/automation/projects/<owner>__<repo>/config.sh` 不存在）→ 先照 `ai-setup` skill 做完再繼續。
-- worktree：`~/worktrees/issue-N`；每個 issue 的狀態：`~/automation/task-state/<owner>__<repo>/issue-N.env`；prompt 與 worker 輸出：`~/automation/logs/<owner>__<repo>/issue-N/`。context 被壓縮或換對話時，先 `$S/task-state.sh list` 找回 job id 與 worktree。
+- worktree：`~/worktrees/<owner>__<repo>/issue-N`；每個 issue 的狀態：`~/automation/task-state/<owner>__<repo>/issue-N.env`；prompt 與 worker 輸出：`~/automation/logs/<owner>__<repo>/issue-N/`。context 被壓縮或換對話時，先 `$S/task-state.sh list` 找回 job id 與 worktree。
 - push、開 issue、建 label 需使用者明確同意；PR 由使用者自己 merge（Claude 不跑 `gh pr merge`）。
 - 一律直接用 `$S/companion.sh` 呼叫 Codex（不經 codex:codex-rescue subagent，它的 .git 是唯讀的）；`task` 必須帶 `--cwd <worktree> --write`。
 - 每個可能跑很久的指令都加 timeout（約正常時間的 2 倍）；逾時就停掉，查 ps／log，回報原因。

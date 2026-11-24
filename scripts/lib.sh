@@ -3,7 +3,7 @@
 #   $RW_HOME/projects/<owner>__<repo>/verify.sh   per-project verify (optional; else <repo>/scripts/ai/verify.sh)
 #   $RW_HOME/task-state/<owner>__<repo>/issue-N.env   worker, job id, worktree, PR per issue
 #   $RW_HOME/logs/<owner>__<repo>/issue-N/            prompts, worker output, agy logs
-#   $RW_WORKTREES/issue-N                              one git worktree per issue
+#   $RW_WORKTREES/<owner>__<repo>/issue-N              one git worktree per issue
 RW_HOME=${RW_HOME:-$HOME/automation}
 RW_WORKTREES=${RW_WORKTREES:-$HOME/worktrees}
 
@@ -14,7 +14,7 @@ rw_slug() { git remote get-url origin | sed -E 's#\.git$##; s#^.*[:/]([^/]+/[^/]
 rw_load() {
   RW_MAIN=$(cd "$(git rev-parse --path-format=absolute --git-common-dir)/.." && pwd)
   RW_SLUG=$(rw_slug); local k=${RW_SLUG/\//__}
-  RW_PROJECT=$RW_HOME/projects/$k; RW_STATE=$RW_HOME/task-state/$k; RW_LOGS=$RW_HOME/logs/$k
+  RW_PROJECT=$RW_HOME/projects/$k; RW_STATE=$RW_HOME/task-state/$k; RW_LOGS=$RW_HOME/logs/$k; RW_WT=$RW_WORKTREES/$k
   RW_BASE=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' || true)
   RW_BASE=${RW_BASE:-main}
   RW_CODEX_NETWORK=false; RW_WRITABLE_ROOTS=(); RW_READ_ROOTS=()

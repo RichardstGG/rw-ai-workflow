@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# usage: new-worktree.sh N [base-branch]   (run inside the main checkout) -> prints $RW_WORKTREES/issue-N
+# usage: new-worktree.sh N [base-branch]   (run inside the main checkout) -> prints $RW_WORKTREES/<owner>__<repo>/issue-N
 set -euo pipefail
 . "$(dirname "$0")/lib.sh"; rw_load
 n=${1:?issue number}; base=${2:-$RW_BASE}
-# shortcut: worktrees are named issue-N without the repo name, so two repos can't run the same issue number at once.
-wt=$RW_WORKTREES/issue-$n
-mkdir -p "$RW_WORKTREES"
+wt=$RW_WT/issue-$n
+mkdir -p "$RW_WT"
 git fetch -q origin "$base"
 if git rev-parse -q --verify "refs/heads/ai/issue-$n" >/dev/null; then
   git worktree add "$wt" "ai/issue-$n" >&2  # Apply review: reuse the existing branch
