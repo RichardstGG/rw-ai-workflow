@@ -106,7 +106,7 @@ plugin 新增 `templates/hc/`，`setup.sh` 會把裡面的檔案複製到 `~/.co
 
 - template 是全域的，但 agy 的 `--settings` 要用到 worktree 的路徑，所以 agy template 改成呼叫 `scripts/agy-launch.sh`。
   它從 `$PWD` 算出 settings（work：worktree 可讀寫，再加上 `RW_READ_ROOTS` 可讀；review：worktree 唯讀），
-  review 模式會先把 `git diff origin/<base>...HEAD` 寫到 `.tmp/rw/review.diff`（agy 的 sandbox 讀不到 worktree 的 gitdir），最後 `exec agy`。
+  review 模式會先把 `git diff origin/<base>...HEAD` 寫到 `.tmp/rw/review.diff`（agy 的 sandbox 讀不到 worktree 的 gitdir），最後 `exec agy ... -i "<task>"`（agy 只從 `-p`、`-i` 或 stdin 讀 prompt，見驗證結果）。
   `<S>` 由 setup 在安裝 template 時換成 plugin `scripts/` 的絕對路徑。
 
 - worker template 的內文就是現在的 `templates/worker-rules.md`，只把「最後回覆」改成「把報告寫到 `.tmp/rw/report.md`」。
@@ -158,6 +158,21 @@ plugin 新增 `templates/hc/`，`setup.sh` 會把裡面的檔案複製到 `~/.co
   4. 第一次在 worktree 啟動 Codex 時會不會跳出信任對話框（skill 提到可能要 `hc keys <t> down enter`）；跳出的話，由 hc-spawn.sh 處理，或在 setup 時就設定信任。
 - `hc-spawn.sh` 的參數設計、名稱和 label 的細節、template 的確切內文。
 - SKILL.md 的寫法照現有風格（台灣繁中、條列、指令寫成絕對路徑）。
+
+## 驗證結果（Task 0，2026-11-24，dev-debian，尚未完成）
+
+已確認：
+- **agy 不接受位置參數當 prompt**：`agy "<task>"` 以 exit 2 結束，錯誤訊息說 prompt 只能從 `-p/--print`、`-i/--prompt-interactive` 或 stdin 讀。
+  互動模式要用 `agy -i "<task>"`，所以 `agy-launch.sh` 最後是 `exec agy ... -i "<task>"`，不是 `exec agy "<task>"`。
+- **hc 的子終端機通知是直接打進父終端機的輸入**：父終端機是 bash 時，`<hc>t5 spike-agy exited ...` 這段文字會被 bash 當成指令執行，出現一串 syntax error。
+  父終端機是 Claude 時，通知會變成一則訊息，這正是設計要的。在 bash 裡做實驗時，子終端機一律加 `--no-notify`。
+
+待確認（交給在 VM 上接手的實作者）：
+- Codex（`--no-daemon --sandbox workspace-write --ask-for-approval never`）和 `claude --model sonnet` 都沒有在 120 秒內寫出 `.tmp/rw/report.md`。
+  原因要看 `~/rw-spike-result.txt`（可能卡在信任／權限對話框，或還在跑）；`hc get` 的 status 是否不為空也在這個檔案裡，對應上面的驗證項目 1。
+- `agy -i` 的重跑結果，以及 `agy --help`（`~/rw-spike-help.txt`）裡互動模式能不能用 `--sandbox`、`--settings`（驗證項目 2）。
+- 用 template 啟動時，hc 把「template 內文 + 任務」合併成的第一則訊息，是當成最後一個參數傳給 `command`，還是在啟動後打進終端機。
+  這決定 `agy-launch.sh` 要從 `$@` 取任務再用 `-i` 傳，還是根本不需要處理任務。
 
 ## 由 Claude 決定、需要使用者確認的事項
 

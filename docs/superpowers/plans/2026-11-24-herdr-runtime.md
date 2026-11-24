@@ -175,7 +175,7 @@ git commit -m "feat: hc-spawn.sh starts issue/worker/verify/review terminals wit
 **Interfaces:**
 - Consumes: `rw_load`（`RW_READ_ROOTS`、`RW_BASE`）
 - Produces:
-  - `agy-launch.sh work|review [MODEL]`，在 worktree 內執行，最後 `exec agy`。MODEL 的預設值：work 用 `${AGY_WORK_MODEL:-gemini-4-argon-high}`，review 用 `${AGY_MODEL:-gemini-4-hydrogen-high}`。
+  - `agy-launch.sh work|review [MODEL]`，在 worktree 內執行，最後 `exec agy ... -i "<task>"`（agy 不接受位置參數當 prompt；任務怎麼從 hc 傳進來，見 spec 的驗證結果）。MODEL 的預設值：work 用 `${AGY_WORK_MODEL:-gemini-4-argon-high}`，review 用 `${AGY_MODEL:-gemini-4-hydrogen-high}`。
     settings 的 JSON 規則沿用舊的 `agy-work.sh`（work）和 `agy-review.sh`（review）。review 模式先把 `git diff origin/$RW_BASE...HEAD` 寫到 `.tmp/rw/review.diff`，diff 是空的就以 1 結束。
     第一個 prompt 怎麼帶，依 Task 0 的結果決定；template 的任務由 hc 合併成第一則訊息。
   - template 的 frontmatter 一律有 `name`、`description`、`command`；`command` 裡的 `__S__` 由 Task 6 的 setup 換成 scripts 的絕對路徑。
