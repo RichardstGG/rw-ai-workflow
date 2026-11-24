@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # usage: setup.sh   (run inside the project's main checkout) -- idempotent; writes nothing that git tracks:
 #   $RW_HOME/{logs,task-state,projects}/<owner>__<repo>, $RW_WORKTREES, a config.sh template,
-#   .git/info/exclude entries, Claude permissions in .claude/settings.local.json, Codex trust for the repo.
+#   .git/info/exclude entries, Claude permissions in .claude/settings.local.json, Codex trust for the repo,
+#   and the rw-* hc templates in ~/.config/herdr-core/templates (rerun after a plugin update: they hold its scripts path).
+# exit: 0 ok | 1 hc server not running
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd); T=$here/../templates
 . "$here/lib.sh"; rw_load
+hc server status >/dev/null 2>&1 || { echo "hc server is not running; start it with: hc server start" >&2; exit 1; }
 cd "$RW_MAIN"
 mkdir -p "$RW_PROJECT" "$RW_STATE" "$RW_LOGS" "$RW_WORKTREES"
 if [ ! -f "$RW_PROJECT/config.sh" ]; then
@@ -12,7 +15,7 @@ if [ ! -f "$RW_PROJECT/config.sh" ]; then
 fi
 
 excl=$(git rev-parse --git-path info/exclude); mkdir -p "$(dirname "$excl")"
-for p in .tmp/ .codex/ .cursor/ .claude/settings.local.json; do
+for p in .tmp/ .codex/ .claude/settings.local.json; do
   grep -qxF "$p" "$excl" 2>/dev/null || { echo "$p" >> "$excl"; echo "excluded $p"; }
 done
 
@@ -37,4 +40,12 @@ if [ -f "$cfg" ] && ! grep -qF "[projects.\"$RW_MAIN\"]" "$cfg"; then
   printf '\n[projects."%s"]\ntrust_level = "trusted"\n' "$RW_MAIN" >> "$cfg"
   echo "codex trust added (backup: $cfg.bak.rw-ai-workflow)"
 fi
+# hc templates: __S__ -> this plugin's scripts dir; a locally changed copy is backed up before it is replaced
+dst=$HOME/.config/herdr-core/templates; mkdir -p "$dst"
+for f in "$T"/hc/*.md; do
+  n=$(basename "$f"); new=$(sed "s|__S__|$here|g" "$f")
+  if [ -f "$dst/$n" ] && [ "$(cat "$dst/$n")" == "$new" ]; then continue; fi
+  if [ -f "$dst/$n" ]; then cp "$dst/$n" "$dst/$n.bak.rw-ai-workflow"; fi
+  printf '%s\n' "$new" > "$dst/$n"; echo "installed template ${n%.md}"
+done
 echo "setup OK: $RW_SLUG (base $RW_BASE); project dir $RW_PROJECT"

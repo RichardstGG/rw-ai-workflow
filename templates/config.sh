@@ -10,6 +10,4 @@ RW_WRITABLE_ROOTS=()             # extra dirs the worker may write, e.g. ("$HOME
 # Antigravity worker: extra dirs it may read (not write), e.g. package caches to check library APIs
 RW_READ_ROOTS=()
 
-# Codex model/effort; leave empty for Codex's own default
-CODEX_MODEL=
-CODEX_EFFORT=
+# Model and effort live in the hc templates' command lines (~/.config/herdr-core/templates/rw-*.md)
