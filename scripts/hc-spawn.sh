@@ -36,9 +36,26 @@ case "$role" in
 esac
 if [ -n "$task" ]; then argv+=("$(cat "$task")"); fi
 out=$(hc run --name "$name" "${args[@]}" "${argv[@]}") || exit 1
-# A launch with a task reports first_message.sent; false means the agent never got it (do not resend blindly).
-sent=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1] or "{}").get("first_message", {}).get("sent", True))' "$out")
-if [ "$sent" != True ]; then echo "task not delivered to $name; run: hc read $name" >&2; exit 1; fi
+# A launch with a task must confirm delivery before we record it in task state.
+if ! python3 -c '
+import json
+import sys
+
+try:
+    result = json.loads(sys.argv[1])
+except ValueError:
+    sys.exit(1)
+
+if not isinstance(result, dict):
+    sys.exit(1)
+if not sys.argv[2] and "first_message" not in result:
+    sys.exit(0)
+message = result.get("first_message")
+sys.exit(0 if isinstance(message, dict) and message.get("sent") is True else 1)
+' "$out" "$task"; then
+  echo "task not delivered to $name; run: hc read $name" >&2
+  exit 1
+fi
 kv=(TERM_${role^^}="$name"); if [ "$role" = work ]; then kv+=(WORKER="${argv[0]}"); fi
 "$(dirname "$0")/task-state.sh" "$n" "${kv[@]}" >/dev/null
 echo "$name"
