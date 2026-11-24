@@ -82,7 +82,7 @@ main                 claude（使用者自己啟動並 attach）            cwd:
   issue Claude 用 `hc wait <r>-<N>-work` 等它停下，再讀報告檔。
   不依賴 worker 主動 `hc send`，因為 Codex 的 sandbox 不一定連得到 hc 的 socket；用檔案回報對任何 agent 都適用。
   wait 返回後如果沒有報告檔，就用 `hc read --lines 200` 看畫面判斷原因（額度用完、出錯、卡在對話框）。
-- **reviewer 回報**：agy 把 review 寫到 `<worktree>/.tmp/rw/review.md`（格式沿用現在的 prompt，最後一行是 `VERDICT: APPROVE|CHANGES`）。
+- **reviewer 回報**：agy 把 review 寫到 `$RW_LOGS/issue-N/review.md`（在 worktree 外，見驗證結果第 4 項；格式沿用現在的 prompt，最後一行是 `VERDICT: APPROVE|CHANGES`）。
   由 issue Claude 呼叫 `scripts/post-review.sh <PR> <review 檔>` 貼 PR comment，結論是 APPROVE 時把 PR 轉為 ready。agy 本身不碰 gh 和 git。
 - **issue Claude 回報主 Claude**：issue Claude 跑在 host 上，可以直接 `hc send <parent> "<一行結論>"`，內容是 PR 連結、ready／draft、待人工驗證的項目，blocked 時附 QUESTIONS。
   主 Claude 用 `hc wait --children any` 接收；hc 也會在 issue Claude blocked、error 或結束時自動通知主 Claude。
@@ -106,7 +106,7 @@ plugin 新增 `templates/hc/`，`setup.sh` 會把裡面的檔案複製到 `~/.co
 
 - template 是全域的，但 agy 的 `--settings` 要用到 worktree 的路徑，所以 agy template 改成呼叫 `scripts/agy-launch.sh`。
   它從 `$PWD` 算出 settings（work：worktree 可讀寫，再加上 `RW_READ_ROOTS` 可讀；review：worktree 唯讀），
-  review 模式會先把 `git diff origin/<base>...HEAD` 寫到 `.tmp/rw/review.diff`（agy 的 sandbox 讀不到 worktree 的 gitdir），最後 `exec agy ... -i "<task>"`（agy 只從 `-p`、`-i` 或 stdin 讀 prompt，見驗證結果）。
+  review 模式會先把 `git diff origin/<base>...HEAD` 寫到 `$RW_LOGS/issue-N/review.diff`（agy 的 sandbox 讀不到 worktree 的 gitdir），最後 `exec agy ... -i "<prompt>"`；work 模式不帶 `-i`，任務由 hc 打進去（見驗證結果第 5 項）。
   `<S>` 由 setup 在安裝 template 時換成 plugin `scripts/` 的絕對路徑。
 
 - worker template 的內文就是現在的 `templates/worker-rules.md`，只把「最後回覆」改成「把報告寫到 `.tmp/rw/report.md`」。
@@ -159,20 +159,30 @@ plugin 新增 `templates/hc/`，`setup.sh` 會把裡面的檔案複製到 `~/.co
 - `hc-spawn.sh` 的參數設計、名稱和 label 的細節、template 的確切內文。
 - SKILL.md 的寫法照現有風格（台灣繁中、條列、指令寫成絕對路徑）。
 
-## 驗證結果（Task 0，2026-11-24，dev-debian，尚未完成）
+## 驗證結果（Task 0，2026-11-24，dev-debian，hc 0.1.22、agy 1.5.16、Claude Code 2.1.331）
 
-已確認：
-- **agy 不接受位置參數當 prompt**：`agy "<task>"` 以 exit 2 結束，錯誤訊息說 prompt 只能從 `-p/--print`、`-i/--prompt-interactive` 或 stdin 讀。
-  互動模式要用 `agy -i "<task>"`，所以 `agy-launch.sh` 最後是 `exec agy ... -i "<task>"`，不是 `exec agy "<task>"`。
-- **hc 的子終端機通知是直接打進父終端機的輸入**：父終端機是 bash 時，`<hc>t5 spike-agy exited ...` 這段文字會被 bash 當成指令執行，出現一串 syntax error。
-  父終端機是 Claude 時，通知會變成一則訊息，這正是設計要的。在 bash 裡做實驗時，子終端機一律加 `--no-notify`。
-
-待確認（交給在 VM 上接手的實作者）：
-- Codex（`--no-daemon --sandbox workspace-write --ask-for-approval never`）和 `claude --model sonnet` 都沒有在 120 秒內寫出 `.tmp/rw/report.md`。
-  原因要看 `~/rw-spike-result.txt`（可能卡在信任／權限對話框，或還在跑）；`hc get` 的 status 是否不為空也在這個檔案裡，對應上面的驗證項目 1。
-- `agy -i` 的重跑結果，以及 `agy --help`（`~/rw-spike-help.txt`）裡互動模式能不能用 `--sandbox`、`--settings`（驗證項目 2）。
-- 用 template 啟動時，hc 把「template 內文 + 任務」合併成的第一則訊息，是當成最後一個參數傳給 `command`，還是在啟動後打進終端機。
-  這決定 `agy-launch.sh` 要從 `$@` 取任務再用 `-i` 傳，還是根本不需要處理任務。
+1. **狀態回報**：codex、claude、agy 都會送出狀態，`hc wait` 在工作完成時以 `status: done`、`turn: 1` 返回，不需要 `--wait-file`。
+   - 例外：程式剛啟動、還沒開始第一個 turn 時是 `idle`、`turn: 0`，`hc wait` 會立刻返回（`agy -i` 啟動後會先 idle 十幾秒）。
+     所以 wait 返回時如果 `turn` 是 0 而且 status 是 `idle`，代表還沒開始，要再 wait 一次。
+   - codex 停在信任對話框時 status 是空的；claude 和 agy 會回報 `blocked`（`kind: permission`, `msg: trust this folder`）。
+2. **第一次執行的對話框**（上一輪 120 秒沒寫出報告的原因）：codex 停在「Trust this folder?」，claude 停在首次啟動的主題選擇（這台機器當時還沒完成 Claude Code 的初始設定）。按掉之後三者都在 10 秒內寫出 `.tmp/rw/report.md`。
+   - codex：`setup.sh` 已經把主 repo 設為信任，worktree 會沿用（維持現狀）。
+   - claude：信任父目錄就涵蓋子目錄。README 請使用者第一次使用 `rw-claude` 前，在 `~/worktree` 啟動一次 claude 並選擇信任。
+   - agy：信任記在 `~/.gemini/antigravity-cli/settings.json` 的 `trustedWorkspaces`，**不會**涵蓋子目錄，每個新 worktree 都會跳一次。
+     plugin 不自動寫入信任（這是使用者的安全決定）；reviewer 或 agy worker 停在信任對話框時會變成 `blocked`，照「需要人的時候」的流程由使用者 attach 處理。
+3. **Codex 的 sandbox**：`workspace-write` 下可以寫 `.tmp/rw/`。
+4. **agy 互動模式**：`agy -i "<task>"` 可以和 `--sandbox`、`--settings`、`--model`、`--add-dir` 一起用。位置參數當 prompt 會以 exit 2 結束。
+   - 互動模式預設是 auto mode（編輯和安全的指令自動核准），所以 settings 沒有 deny 的地方都寫得進去。
+   - **deny 優先於更細的 allow**：`deny write_file(<wt>)` 加上 `allow write_file(<wt>/.tmp/rw)`，`.tmp/rw/` 也寫不進去。
+     deny 是比對路徑，不是字串前綴（deny `/tmp/rw-spike` 不會擋到 `/tmp/rw-spike-out`）。
+   - 因此 **review 的 diff 和結果改放在 worktree 外**：`$RW_LOGS/issue-N/review.diff`、`review.md`。
+     settings 是 worktree 可讀、log 目錄可讀寫，deny `write_file(<wt>)`。
+   - hc 的訊息會附上 `reach="hc send <parent> when done or stuck"`，agy 看到後會嘗試 `hc send`，然後停在權限詢問。所以 agy 的 settings 一律 deny `command(hc)`，worker template 也寫明不要執行 hc。
+5. **template 的任務怎麼傳**：hc **不是**把任務當成 command 的參數（argc 是 0），而是等程式回報 ready 之後，把「template 內文 + 任務」包成 `<hc from=... reach=...>…</hc>` 打進終端機。
+   程式沒有回報 ready 就結束的話，`first_message.sent` 是 false。內文是空的而且沒有任務時，hc 不會打任何東西。
+   - `agy-launch.sh work`：最後 `exec agy --sandbox --settings ...`，不加 `-i`，任務由 hc 打進去。
+   - `agy-launch.sh review`：review 的 prompt 需要 log 目錄的絕對路徑，所以由腳本組好，用 `exec agy ... -i "<prompt>"` 傳；`rw-agy-review` template 的內文留空，issue Claude 啟動時也不帶任務。
+6. **hc 的子終端機通知是直接打進父終端機的輸入**：父終端機是 bash 時會被當成指令執行。父終端機是 Claude 時會變成一則訊息，這正是設計要的。在 bash 裡做實驗時，子終端機一律加 `--no-notify`。
 
 ## 由 Claude 決定、需要使用者確認的事項
 
