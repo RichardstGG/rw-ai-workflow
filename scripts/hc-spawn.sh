@@ -36,7 +36,9 @@ case "$role" in
 esac
 if [ -n "$task" ]; then argv+=("$(cat "$task")"); fi
 out=$(hc run --name "$name" "${args[@]}" "${argv[@]}") || exit 1
-# A launch with a task must confirm delivery before we record it in task state.
+# A template launch with a task must confirm delivery before we record it in task state.
+# A plain program gets its task as argv, so hc sends no first message and reports none.
+ack=; if [ -n "$task" ] && [[ ${argv[0]} == rw-* ]]; then ack=1; fi
 if ! python3 -c '
 import json
 import sys
@@ -52,7 +54,7 @@ if not sys.argv[2] and "first_message" not in result:
     sys.exit(0)
 message = result.get("first_message")
 sys.exit(0 if isinstance(message, dict) and message.get("sent") is True else 1)
-' "$out" "$task"; then
+' "$out" "$ack"; then
   echo "task not delivered to $name; run: hc read $name" >&2
   exit 1
 fi

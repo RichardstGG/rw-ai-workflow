@@ -18,6 +18,13 @@ check_has "issue: agent label is the program" "$run" "--label rw_agent=claude"
 check_has "issue: program args then task last" "$run" "claude --model sonnet Implement issue 101"
 check_has "issue: state records the terminal" "$(cat "$state")" "TERM_ISSUE=roadscope-101"
 
+# plain program: task goes in as argv, hc run reports no first_message
+rm "$state"
+out=$(HC_RUN_OUT='{"address":"t30","agent":"claude","state":"live","turn":0}' \
+  "$S/hc-spawn.sh" 101 issue "claude --model sonnet" "$T/task.md")
+check "issue without first_message: prints the terminal name" "$out" roadscope-101
+check_has "issue without first_message: state records the terminal" "$(cat "$state")" "TERM_ISSUE=roadscope-101"
+
 code=0; "$S/hc-spawn.sh" 101 work rw-codex "$T/task.md" >/dev/null 2>"$T/err" || code=$?
 check "work without a worktree: usage error" "$code" 64
 
