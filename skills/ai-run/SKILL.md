@@ -19,7 +19,7 @@ description: Run one ai:ready GitHub issue through Codex (Antigravity or Claude 
 - 開終端機一律用 `$S/hc-spawn.sh N <role> <template 或指令> [任務檔]`，它會設好名稱、label、cwd 並寫入 task-state，印出終端機名稱。exit 1 → 把它印出的錯誤告訴使用者（例如同名終端機還在、任務沒送到）並停下，不要重試同一個指令。
 - 等待：`hc wait <名稱> --timeout 600 --json`。看回傳：
   - `turn` 是 0 而且 `status` 是 `idle`：程式還沒開始第一個 turn（agy 啟動要十幾秒），再 wait 一次。
-  - `status` 是 `blocked`：`hc read <名稱> --lines 60` 看畫面。hc 不說 blocked 的原因，程式剛啟動時也會短暫回報 blocked，所以只依畫面判斷：
+  - `status` 是 `blocked`：`hc read <名稱> --lines 60` 看畫面。hc 附的原因（例如 `blocked (auth)`）不可靠：剛啟動、甚至已寫完結果的 agy 也會被標成 auth，所以只依畫面判斷：
     - 畫面**最後幾行**確實是等待使用者回應的提示（信任資料夾、權限核准、登入／授權網址）→ 交給使用者：告訴他 `hc attach <名稱>` 處理（ctrl+\ 離開），**附上畫面中那幾行提示原文**，處理完再繼續 wait。**不使用 `--force`，也不替使用者按信任或核准。**
     - 畫面沒有這種提示（例如在讀檔、`Reading file...`、模型在跑、只是歷史訊息裡出現 login 字樣）→ 不是卡住，再 wait 一次；同一個終端機連續三次這樣，才把畫面最後 20 行轉給使用者。
     - 該角色的結果檔（例如 `$log/review.md`）已經寫出 → 不必等，照完成處理。
@@ -72,7 +72,7 @@ description: Run one ai:ready GitHub issue through Codex (Antigravity or Claude 
    - `$log/review.md` 有內容 → `$S/post-review.sh <PR URL> $log/review.md "Antigravity review（gemini-4-hydrogen-high）"`（在 worktree 內執行）。它貼 PR comment；結論是 APPROVE 時把 PR 轉成 ready for review，否則維持 draft。把結果告訴使用者。
    - 沒有 review.md，或 reviewer 進入 error → `hc kill`／`hc rm <r>-N-review`，改用 `rw-agy-review-lite` 重來一次，貼 comment 時 reviewer 寫 `Antigravity review（gemini-3.8-flash-high）`。兩次都失敗就告訴使用者原因，不影響 PR、不再重試。
    - reviewer 一啟動就以 exit 1 結束：diff 是空的，`hc read` 確認後告訴使用者。
-   - 結束後 `hc rm <r>-N-review`。
+   - 結束後 `hc kill`／`hc rm <r>-N-review`（agy 寫完 review 後仍停在互動畫面，終端機還活著）。
 7. 回報主 Claude：`$S/hc-tell.sh parent "#N <PR 連結> ready|draft；待人工驗證：<項目>"`（blocked 時附 QUESTIONS）。
 
 ## Apply review（使用者說「PR #X 有 comment」）
