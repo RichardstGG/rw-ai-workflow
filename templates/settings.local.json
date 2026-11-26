@@ -18,6 +18,7 @@
     ],
     "deny": [
       "Bash(codex *)",
+      "Bash(*/scripts/codex-launch.sh*)", "Bash(*/scripts/agy-launch.sh*)",
       "Bash(gh pr merge *)",
       "Bash(git push --force *)", "Bash(git push -f *)",
       "Bash(git push * --force*)", "Bash(git push * -f *)", "Bash(git push * +*)",

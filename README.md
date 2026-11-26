@@ -66,7 +66,7 @@ agy's trust does not cover subfolders, so `agy-launch.sh` adds each issue worktr
 | `派工 #N #M` | From the main conversation: one issue Claude terminal per issue, each reporting back with one line |
 | `PR #X 有 comment` | Claude turns your review comments into a fix brief for the same implementer |
 
-If Codex hits its usage limit, Claude stops and asks: Antigravity, Claude Sonnet, or wait.
+If the implementer (agy or Codex) hits its usage limit, Claude stops and asks: the other implementer, Claude Sonnet, or wait.
 You merge PRs yourself; the plugin's permissions deny `gh pr merge`, force pushes, `hc server *` and `hc send --force`.
 Claude starts terminals only through `hc-spawn.sh` (which accepts only the workflow's own programs) and talks to them only through `hc-tell.sh`; raw `hc run` and `hc send` are not allowed, since they could run any command.
 

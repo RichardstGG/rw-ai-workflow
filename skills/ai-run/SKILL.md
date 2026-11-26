@@ -39,8 +39,8 @@ description: Run one ai:ready GitHub issue through Antigravity or Codex (routed 
 - 模型由 task-state 的 `WORK_MODEL` 傳給 worker：Dispatch 6 啟動前 `$S/task-state.sh N WORK_MODEL=<模型>`（不指定就 `WORK_MODEL=`），`agy-launch.sh`／`codex-launch.sh` 會讀它。
 - **agy 連續兩次失敗才改派 Codex**：失敗指 worker 沒寫報告（額度問題除外）、STATUS 為 blocked／partial 且原因不是 ENV_LIMITED、或 host verify 失敗（Finalize 1、2）；worker 還沒開始就結束不算。第一次失敗照 Finalize 2 用 agy 重派一次；第二次失敗 → `hc kill`／`hc rm <r>-N-work`，`$S/task-state.sh N WORK_MODEL=`（用 Codex 預設的 sol；主控的 Claude 指定了改派用的模型就填它），任務檔附 issue 全文、`git -C "$wt" diff`、兩次的失敗原因，用 `rw-codex` 照 Dispatch 6 啟動，並 `$S/hc-tell.sh parent "#N agy 失敗兩次，改派 Codex"`。改派後照 Codex 的規則（Finalize 2 再重派一次）。
   - 例外：agy 回報 blocked 是因為 issue 本身有只能由使用者決定的問題（QUESTIONS 是在問決策，換實作者也一樣）→ 不算失敗，照 Finalize 1 標 `ai:blocked`。
-- **Codex 額度用完**（worker 沒寫報告，`hc read <r>-N-work --lines 200` 提到 usage limit／quota／rate limit）→ 停下來問使用者，不自動改派：
-  1. Antigravity（`rw-agy-work`）
+- **實作者額度用完**（worker 沒寫報告，`hc read <r>-N-work --lines 200` 提到 usage limit／quota／rate limit；agy 和 Codex 都一樣，不計入失敗次數）→ 停下來問使用者，不自動改派：
+  1. 另一個實作者（agy 用完就 Codex `rw-codex`，Codex 用完就 Antigravity `rw-agy-work`）
   2. Claude Sonnet（`rw-claude`）
   3. 等額度恢復
   改派前先 `hc kill`／`hc rm` 舊的 worker，`$S/task-state.sh N WORK_MODEL=`（舊模型不適用新的實作者；要指定就填新的），任務檔附 `git diff` 請新的實作者接續。
