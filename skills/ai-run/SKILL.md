@@ -43,7 +43,7 @@ description: Run one ai:ready GitHub issue through Antigravity or Codex (routed 
   1. Antigravity（`rw-agy-work`）
   2. Claude Sonnet（`rw-claude`）
   3. 等額度恢復
-  改派前先 `hc kill`／`hc rm` 舊的 worker，任務檔附 `git diff` 請新的實作者接續。
+  改派前先 `hc kill`／`hc rm` 舊的 worker，`$S/task-state.sh N WORK_MODEL=`（舊模型不適用新的實作者；要指定就填新的），任務檔附 `git diff` 請新的實作者接續。
 - Finalize 2 的重派（agy 的第二次失敗例外，見上）、Apply review 都沿用該 issue 目前的實作者與模型（task-state 的 `WORKER`、`WORK_MODEL`）；遇額度不足時同上詢問。
 - claude 第一次在某個資料夾啟動會詢問是否信任，終端機會變成 `blocked`，照上面的規則請使用者 attach 處理。agy 的信任由 `agy-launch.sh` 自動寫入（只限本 repo 的 issue worktree），仍出現信任詢問時一樣請使用者處理。
 - `rw-claude` 只自動接受編輯，git／gh／hc 一律禁止；它要跑其他指令（例如 verify）時會停在權限詢問，同樣請使用者 attach 決定。
@@ -69,7 +69,7 @@ description: Run one ai:ready GitHub issue through Antigravity or Codex (routed 
 
 ## Finalize（issue Claude）
 以下的 git 指令都在 worktree 內執行：`cd "$wt"` 或 `git -C "$wt" ...`。
-1. 讀 `$wt/.tmp/rw/report.md`。沒有這個檔案 → `hc read <r>-N-work --lines 200` 判斷原因（額度用完見「實作者」；錯誤或卡住就告訴使用者並停下）。STATUS 為 blocked，或 partial 但原因不是 ENV_LIMITED → 實作者是 agy 時先照「實作者」的失敗規則重派／改派；否則在 issue 留言貼 QUESTIONS，標 `ai:blocked`，回報主 Claude。
+1. 讀 `$wt/.tmp/rw/report.md`。沒有這個檔案 → `hc read <r>-N-work --lines 200` 判斷原因（額度用完見「實作者」；實作者是 agy 時照「實作者」的失敗規則重派／改派；其他實作者錯誤或卡住就告訴使用者並停下）。STATUS 為 blocked，或 partial 但原因不是 ENV_LIMITED → 實作者是 agy 時先照「實作者」的失敗規則重派／改派；否則在 issue 留言貼 QUESTIONS，標 `ai:blocked`，回報主 Claude。
 2. **在 host 跑完整 verify**（不信任 sandbox 結果）：`$S/hc-spawn.sh N verify "bash $S/verify.sh"`，再 `hc wait <r>-N-verify --timeout 1800 --json`，看 `exit_code`；失敗時 `hc read <r>-N-verify --lines 200` 取 log。讀完 `hc rm <r>-N-verify`。
    失敗 → 重派一次（agy 第二次失敗改派 Codex，見「實作者」）：`hc kill`／`hc rm <r>-N-work`，任務檔附 issue 全文、`git -C "$wt" diff`、失敗 log，再照 Dispatch 6 啟動。worker 還沒開始就結束（啟動失敗）不計入次數。
 3. 在 `$wt` 內只 `git add -- <FILES 列出的路徑>`，確認 `git status --porcelain` 沒有 FILES 以外的變更；commit（用 COMMIT_MESSAGE，非 Codex 時附上「實作者」的 Implemented by 那行）。`git push -u origin ai/issue-N`。

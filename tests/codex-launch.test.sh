@@ -12,4 +12,14 @@ check "no WORK_MODEL: Codex's own default" "$log" "codex --no-daemon --sandbox w
 launch
 check "WORK_MODEL: passed to codex" "$log" "codex --no-daemon --sandbox workspace-write --ask-for-approval never --model gpt-6.2-sol"
 
+(cd "$wt" && "$S/task-state.sh" 7 WORK_MODEL= >/dev/null)
+launch
+check "cleared WORK_MODEL: Codex's own default" "$log" "codex --no-daemon --sandbox workspace-write --ask-for-approval never"
+
+: > "$STUB_LOG"; (cd "$wt" && "$S/task-state.sh" 7 WORK_MODEL=gpt-6.2-sol >/dev/null && "$S/codex-launch.sh" -c model_reasoning_effort=high >/dev/null 2>&1)
+check "template args passed on, WORK_MODEL last" "$(cat "$STUB_LOG")" "codex --no-daemon --sandbox workspace-write --ask-for-approval never -c model_reasoning_effort=high --model gpt-6.2-sol"
+
+code=0; (cd "$wt" && PATH=/usr/bin:/bin "$S/codex-launch.sh" >/dev/null 2>&1) || code=$?
+check "codex missing: exit 3" "$code" 3
+
 finish

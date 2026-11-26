@@ -21,7 +21,12 @@ check_lacks "work: task comes from hc, not -i" "$log" " -i "
 launch work
 check_has "work: WORK_MODEL from task state" "$log" "--model gemini-4-neon-medium"
 launch work gemini-4-neon-xhigh
-check_has "work: model argument beats WORK_MODEL" "$log" "--model gemini-4-neon-xhigh"
+check_has "work: WORK_MODEL beats the template's model argument" "$log" "--model gemini-4-neon-medium"
+(cd "$wt" && "$S/task-state.sh" 7 WORK_MODEL= >/dev/null)
+launch work gemini-4-neon-xhigh
+check_has "work: cleared WORK_MODEL falls back to the argument" "$log" "--model gemini-4-neon-xhigh"
+WORK_MODEL=from-env launch work
+check_has "work: exported WORK_MODEL ignored" "$log" "--model gemini-4-neon-high"
 rm "$HOME/automation/task-state/alice__RoadScope/issue-7.env"
 
 launch review

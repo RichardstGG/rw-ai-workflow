@@ -41,7 +41,7 @@ rw_log_dir() { mkdir -p "$RW_LOGS/issue-$1" && echo "$RW_LOGS/issue-$1"; }
 # rw_work_model: the WORK_MODEL ai-run recorded for the issue whose worktree is $PWD (empty if none); call after rw_load
 rw_work_model() {
   local n; n=$(basename "$(git rev-parse --show-toplevel)"); n=${n#issue-}
-  ( if [ -f "$RW_STATE/issue-$n.env" ]; then . "$RW_STATE/issue-$n.env"; fi; echo "${WORK_MODEL:-}" )
+  ( WORK_MODEL=; if [ -f "$RW_STATE/issue-$n.env" ]; then . "$RW_STATE/issue-$n.env"; fi; echo "${WORK_MODEL:-}" )
 }
 
 # rw_agy_trust add|rm DIR: add DIR to (or drop it from) agy's trustedWorkspaces, keeping every other setting.
