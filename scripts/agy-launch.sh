@@ -8,7 +8,8 @@
 #             Review runs no commands at all (command(*) denied), so text in a diff cannot make it run one.
 # Trusts the issue worktree in agy's settings first (agy asks for every new folder otherwise).
 # Always denied: gh, git and hc (hc's messages invite an `hc send`, which would only stop at a permission prompt).
-# models: work $AGY_WORK_MODEL, review $AGY_MODEL (both default gemini-4-neon-high); review records the model it used
+# models: work MODEL, else the issue's WORK_MODEL in task state, else $AGY_WORK_MODEL; review MODEL, else $AGY_MODEL
+#   (both default gemini-4-neon-high); review records the model it used
 #   in $RW_LOGS/issue-N/review.model for post-review.sh.
 # exit: execs agy | 1 empty diff (review) | 3 agy not installed | 64 usage
 set -euo pipefail
@@ -22,6 +23,7 @@ settings() { python3 -c 'import json,sys; a,d=json.loads(sys.argv[1]),json.loads
 case "$mode" in
   work)
     allow=$(python3 -c 'import json,os,sys; w,*ro=sys.argv[1:]; print(json.dumps([f"read_file({w})", f"write_file({w})"] + [f"read_file({d})" for d in ro if d and os.path.isdir(d)]))' "$wt" "${RW_READ_ROOTS[@]}")
+    model=${model:-$(rw_work_model)}
     exec agy --model "${model:-${AGY_WORK_MODEL:-gemini-4-neon-high}}" --sandbox --settings "$(settings "$allow" '[]')" ;;
   review)
     n=$(basename "$wt"); n=${n#issue-}; log=$(rw_log_dir "$n")

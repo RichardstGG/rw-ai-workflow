@@ -3,7 +3,7 @@
 A Claude Code plugin for a three-agent workflow on GitHub issues, with every agent running as a herdr core (`hc`) terminal:
 
 - **Claude** plans issues, verifies on the host, commits, pushes and opens draft PRs.
-- **Codex** implements each issue in its own git worktree.
+- **Antigravity** implements ordinary issues and **Codex** the ones that need it, each in its own git worktree; the dispatching Claude picks the worker and model per issue, and an issue moves to Codex after agy fails twice in a row.
 - **Antigravity (agy)** reviews every PR and posts a comment (APPROVE → ready for review, otherwise draft); it can also implement on request. **Claude Sonnet** is the other fallback implementer.
 
 Nothing is added to the project's git history. Everything the workflow keeps lives outside the repo:
@@ -61,8 +61,8 @@ agy's trust does not cover subfolders, so `agy-launch.sh` adds each issue worktr
 
 | You say | What happens |
 |---|---|
-| `開跑 #N` | Codex implements issue N in `~/worktree/<owner>__<repo>/issue-N`, Claude runs verify on the host, pushes `ai/issue-N`, opens a draft PR, agy reviews |
-| `開跑 #N agy` / `開跑 #N claude` | Same, with Antigravity or Claude Sonnet as the implementer |
+| `開跑 #N` | agy or Codex (routed by complexity) implements issue N in `~/worktree/<owner>__<repo>/issue-N`, Claude runs verify on the host, pushes `ai/issue-N`, opens a draft PR, agy reviews |
+| `開跑 #N agy` / `開跑 #N codex` / `開跑 #N claude` | Same, with that implementer (optionally `開跑 #N agy gemini-4-neon-xhigh` to pick the model) |
 | `派工 #N #M` | From the main conversation: one issue Claude terminal per issue, each reporting back with one line |
 | `PR #X 有 comment` | Claude turns your review comments into a fix brief for the same implementer |
 

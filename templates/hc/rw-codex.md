@@ -1,7 +1,7 @@
 ---
 name: rw-codex
-description: Codex implements one issue in its worktree (default worker)
-command: codex --no-daemon --sandbox workspace-write --ask-for-approval never
+description: Codex implements one issue in its worktree (issues that need it, and after agy fails twice)
+command: bash __S__/codex-launch.sh
 ---
 ## Worker rules
 - Only modify the paths listed in the issue's Scope (Scope limits writes; reading is unrestricted).

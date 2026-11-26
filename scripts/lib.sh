@@ -38,6 +38,12 @@ rw_verify() {
 # rw_log_dir N: per-issue log dir (created)
 rw_log_dir() { mkdir -p "$RW_LOGS/issue-$1" && echo "$RW_LOGS/issue-$1"; }
 
+# rw_work_model: the WORK_MODEL ai-run recorded for the issue whose worktree is $PWD (empty if none); call after rw_load
+rw_work_model() {
+  local n; n=$(basename "$(git rev-parse --show-toplevel)"); n=${n#issue-}
+  ( if [ -f "$RW_STATE/issue-$n.env" ]; then . "$RW_STATE/issue-$n.env"; fi; echo "${WORK_MODEL:-}" )
+}
+
 # rw_agy_trust add|rm DIR: add DIR to (or drop it from) agy's trustedWorkspaces, keeping every other setting.
 # agy's trust does not cover subfolders, so each issue worktree needs its own entry, or agy stops at a trust prompt.
 rw_agy_trust() {
