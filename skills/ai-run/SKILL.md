@@ -69,8 +69,8 @@ description: Run one ai:ready GitHub issue through Codex (Antigravity or Claude 
    body：🤖 標記、`Closes #N`、`Worker: Codex`／`Worker: Antigravity`／`Worker: Claude Sonnet`、SUMMARY、TESTS、ENV_LIMITED 與 QUESTIONS（待人工驗證的項目）。`$S/task-state.sh N PR=<url>`。
 5. `gh issue edit N --remove-label ai:in-progress --add-label ai:review`
 6. Review：`$S/hc-spawn.sh N review rw-agy-review`（不帶任務檔；prompt 由 `agy-launch.sh` 組好），照「hc 使用規則」wait。agy 只讀 worktree，把結果寫到 `$log/review.md`。
-   - `$log/review.md` 有內容 → `$S/post-review.sh <PR URL> $log/review.md "Antigravity review（gemini-4-hydrogen-high）"`（在 worktree 內執行）。它貼 PR comment；結論是 APPROVE 時把 PR 轉成 ready for review，否則維持 draft。把結果告訴使用者。
-   - 沒有 review.md，或 reviewer 進入 error → `hc kill`／`hc rm <r>-N-review`，改用 `rw-agy-review-lite` 重來一次，貼 comment 時 reviewer 寫 `Antigravity review（gemini-3.8-flash-high）`。兩次都失敗就告訴使用者原因，不影響 PR、不再重試。
+   - `$log/review.md` 有內容 → `$S/post-review.sh <PR URL> $log/review.md`（在 worktree 內執行；標題的模型名稱由 `agy-launch.sh` 記錄的實際模型決定）。它貼 PR comment；結論是 APPROVE 時把 PR 轉成 ready for review，否則維持 draft。把結果告訴使用者。
+   - 沒有 review.md，或 reviewer 進入 error → `hc kill`／`hc rm <r>-N-review`，改用 `rw-agy-review-lite` 重來一次，同樣用 `$S/post-review.sh <PR URL> $log/review.md` 貼 comment。兩次都失敗就告訴使用者原因，不影響 PR、不再重試。
    - reviewer 一啟動就以 exit 1 結束：diff 是空的，`hc read` 確認後告訴使用者。
    - 結束後 `hc kill`／`hc rm <r>-N-review`（agy 寫完 review 後仍停在互動畫面，終端機還活著）。
 7. 回報主 Claude：`$S/hc-tell.sh parent "#N <PR 連結> ready|draft；待人工驗證：<項目>"`（blocked 時附 QUESTIONS）。

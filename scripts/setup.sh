@@ -45,7 +45,7 @@ dst=$HOME/.config/herdr-core/templates; mkdir -p "$dst"
 for f in "$T"/hc/*.md; do
   n=$(basename "$f"); new=$(sed "s|__S__|$here|g" "$f")
   if [ -f "$dst/$n" ] && [ "$(cat "$dst/$n")" == "$new" ]; then continue; fi
-  if [ -f "$dst/$n" ]; then cp "$dst/$n" "$dst/$n.bak.rw-ai-workflow"; fi
+  if [ -f "$dst/$n" ]; then cp "$dst/$n" "$dst/$n.bak.rw-ai-workflow"; echo "backed up $dst/$n.bak.rw-ai-workflow"; fi
   printf '%s\n' "$new" > "$dst/$n"; echo "installed template ${n%.md}"
 done
 echo "setup OK: $RW_SLUG (base $RW_BASE); project dir $RW_PROJECT"
