@@ -25,6 +25,7 @@ check "rerun: no backups" "$(ls "$dst" | grep -c bak || true)" 0
 check_lacks "rerun: nothing reinstalled" "$out" "installed template"
 
 echo mine >> "$dst/rw-codex.md"; run
+check_has "changed template: says backed up" "$out" "backed up"
 check "changed template: backed up" "$(grep -c mine "$dst/rw-codex.md.bak.rw-ai-workflow")" 1
 check_lacks "changed template: overwritten" "$(cat "$dst/rw-codex.md")" "mine"
 

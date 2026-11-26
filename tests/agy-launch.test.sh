@@ -13,7 +13,7 @@ check_has "work: writes worktree" "$log" "write_file($wt)"
 check_has "work: reads RW_READ_ROOTS" "$log" "read_file($ro)"
 check_lacks "work: skips missing roots" "$log" "$T/missing"
 check_has "work: denies hc" "$log" "command(hc)"
-check_has "work: default model" "$log" "--model gemini-4-argon-high"
+check_has "work: default model" "$log" "--model gemini-4-neon-high"
 check_has "work: sandboxed" "$log" "--sandbox"
 check_lacks "work: task comes from hc, not -i" "$log" " -i "
 
@@ -32,11 +32,17 @@ check_has "review: denies hc" "$log" "command(hc)"
 check_has "review: denies every command" "$log" "command(*)"
 check_has "review: prompt names the review file" "$log" "-i You are reviewing"
 check_has "review: prompt says where to write" "$log" "$logs/review.md"
-check_has "review: default model" "$log" "--model gemini-4-hydrogen-high"
+check_has "review: default model" "$log" "--model gemini-4-neon-high"
+check "review: records the model" "$(cat "$logs/review.model")" gemini-4-neon-high
 check "review: stale review removed" "$( [ -e "$logs/review.md" ] && echo kept || echo removed)" removed
 
-launch review gemini-3.8-flash-high
-check_has "review: model argument" "$log" "--model gemini-3.8-flash-high"
+launch review gemini-4-neon-medium
+check_has "review: model argument" "$log" "--model gemini-4-neon-medium"
+check "review: records the argument model" "$(cat "$logs/review.model")" gemini-4-neon-medium
+AGY_MODEL=m-env AGY_WORK_MODEL=w-env launch review
+check_has "review: AGY_MODEL overrides" "$log" "--model m-env"
+AGY_WORK_MODEL=w-env launch work
+check_has "work: AGY_WORK_MODEL overrides" "$log" "--model w-env"
 
 # trust: only worktrees under RW_WT/<owner>__<repo>/issue-N, once each, other settings kept
 agyset=$HOME/.gemini/antigravity-cli/settings.json

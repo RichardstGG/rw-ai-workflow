@@ -102,7 +102,9 @@ plugin 新增 `templates/hc/`，`setup.sh` 會把裡面的檔案複製到 `~/.co
 | `rw-claude` | `claude --model sonnet`（互動模式） | Codex 額度用完時改派 |
 | `rw-agy-work` | `bash <S>/agy-launch.sh work`（互動模式） | `agy work` |
 | `rw-agy-review` | `bash <S>/agy-launch.sh review`（互動模式） | 每個 PR 的 review |
-| `rw-agy-review-lite` | `bash <S>/agy-launch.sh review gemini-3.8-flash-high` | 主要模型 review 失敗時的替代方案 |
+| `rw-agy-review-lite` | `bash <S>/agy-launch.sh review gemini-4-neon-medium` | 主要模型 review 失敗時的替代方案 |
+
+> 2026-11-26 起 agy 全部改用 Neon：work／review 預設 `gemini-4-neon-high`，`rw-agy-review-lite` 改為 `gemini-4-neon-medium`；review 標題的模型由 `agy-launch.sh` 寫入的 `review.model` 決定。
 
 - template 是全域的，但 agy 的 `--settings` 要用到 worktree 的路徑，所以 agy template 改成呼叫 `scripts/agy-launch.sh`。
   它從 `$PWD` 算出 settings（work：worktree 可讀寫，再加上 `RW_READ_ROOTS` 可讀；review：worktree 唯讀），

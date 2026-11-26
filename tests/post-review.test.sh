@@ -27,6 +27,13 @@ printf ' \n\n' > .tmp/rw/review.md; post .tmp/rw/review.md
 check "blank review: exit 1" "$code" 1
 check_lacks "blank review: no comment" "$(cat "$STUB_LOG")" "gh pr comment"
 
+printf 'ok\nVERDICT: APPROVE\n' > .tmp/rw/review.md; echo gemini-4-neon-medium > .tmp/rw/review.model
+: > "$STUB_LOG"; out=$("$S/post-review.sh" "$url" .tmp/rw/review.md 2>&1)
+check_has "no reviewer: title from review.model" "$(cat .tmp/rw/review-comment.md)" "🤖 **Antigravity review（gemini-4-neon-medium）**"
+check_has "no reviewer: says so" "$out" "Antigravity review（gemini-4-neon-medium）: APPROVE"
+rm .tmp/rw/review.model; out=$("$S/post-review.sh" "$url" .tmp/rw/review.md 2>&1)
+check_has "no reviewer, no model file: plain title" "$(cat .tmp/rw/review-comment.md)" "🤖 **Antigravity review**（"
+
 post .tmp/rw/missing.md
 check "missing review: exit 1" "$code" 1
 check_lacks "missing review: no comment" "$(cat "$STUB_LOG")" "gh pr comment"
