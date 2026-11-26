@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # usage: task-state.sh N [KEY=VALUE ...]   -- records per-issue state, then prints it
 #        task-state.sh list                -- one line per issue that has state
-# Keys used by ai-run: WORKER WORKTREE BRANCH PR TERM_ISSUE TERM_WORK TERM_VERIFY TERM_REVIEW. Run inside the main checkout or a worktree.
+# Keys used by ai-run: WORKER WORK_MODEL WORKTREE BRANCH PR TERM_ISSUE TERM_WORK TERM_VERIFY TERM_REVIEW. Run inside the main checkout or a worktree.
 set -euo pipefail
 . "$(dirname "$0")/lib.sh"; rw_load
 mkdir -p "$RW_STATE"

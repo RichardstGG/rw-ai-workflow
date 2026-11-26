@@ -9,7 +9,7 @@ for n in rw-codex rw-claude rw-agy-work rw-agy-review rw-agy-review-lite; do
   check "$n: name matches file" "$( [ -f "$f" ] && field "$f" name)" "$n"
   check_has "$n: has description" "$( [ -f "$f" ] && field "$f" description)" " "
 done
-check "rw-codex command" "$(field "$D/rw-codex.md" command 2>/dev/null)" "codex --no-daemon --sandbox workspace-write --ask-for-approval never"
+check "rw-codex command" "$(field "$D/rw-codex.md" command 2>/dev/null)" "bash __S__/codex-launch.sh"
 check "rw-claude command" "$(field "$D/rw-claude.md" command 2>/dev/null)" 'claude --model sonnet --permission-mode acceptEdits --disallowedTools "Bash(git:*)" "Bash(gh:*)" "Bash(hc:*)"'
 check "rw-agy-work command" "$(field "$D/rw-agy-work.md" command 2>/dev/null)" "bash __S__/agy-launch.sh work"
 check "rw-agy-review command" "$(field "$D/rw-agy-review.md" command 2>/dev/null)" "bash __S__/agy-launch.sh review"

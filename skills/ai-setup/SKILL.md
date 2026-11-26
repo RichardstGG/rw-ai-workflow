@@ -32,7 +32,7 @@ hc server 沒在跑時 setup 會以 1 結束：請使用者 `hc server start`。
 另外提醒使用者：claude 第一次在新的 worktree 啟動時會問要不要信任資料夾，終端機會停在 blocked，要 attach 進去選擇。claude 信任上層資料夾就涵蓋子資料夾，所以可以先在 `~/worktree` 跑一次 `claude` 並選信任。agy 不用處理：`agy-launch.sh` 會自動把該 issue 的 worktree 加進 agy 的 `trustedWorkspaces`，cleanup 時再移除。
 
 ## 3. 專案專屬設定
-- 編輯 `~/automation/projects/<owner>__<repo>/config.sh`：base branch、Codex sandbox 要不要網路、要額外寫入的目錄（SDK、套件快取）、agy 要額外讀取的目錄。model 和 effort 寫在 `~/.config/herdr-core/templates/rw-*.md` 的 `command` 裡（重跑 setup 會覆蓋，覆蓋前會備份）。依專案工具鏈判斷，把設定與理由告訴使用者。
+- 編輯 `~/automation/projects/<owner>__<repo>/config.sh`：base branch、Codex sandbox 要不要網路、要額外寫入的目錄（SDK、套件快取）、agy 要額外讀取的目錄。agy 的 model 寫在 `~/.config/herdr-core/templates/rw-agy-*.md` 的 `command` 裡（重跑 setup 會覆蓋，覆蓋前會備份）；Codex 的 model 與 effort 寫在 `~/.codex/config.toml`（`codex-launch.sh` 不接受參數）；實作的模型通常由 ai-run 依 issue 決定（task-state 的 `WORK_MODEL`），template 只是預設。依專案工具鏈判斷，把設定與理由告訴使用者。
 - verify 腳本：repo 已有 `scripts/ai/verify.sh` 就沿用；沒有就參考 CI 設定寫一份 `~/automation/projects/<owner>__<repo>/verify.sh`：
   - 鏡像 CI 中 Linux 能跑的子集，不比 CI 嚴；從 repo 根目錄執行（`$S/verify.sh` 會先 cd 過去）。
   - 支援 `--sandbox`：需要 socket／D-Bus／網路的步驟在 sandbox 模式下跳過，印出 `ENV_LIMITED: skipped <step>`。
