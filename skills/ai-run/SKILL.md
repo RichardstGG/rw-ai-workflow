@@ -47,7 +47,7 @@ description: Run one ai:ready GitHub issue through Antigravity or Codex (routed 
   改派前先 `hc kill`／`hc rm` 舊的 worker，`$S/task-state.sh N WORK_MODEL=`（舊模型不適用新的實作者；要指定就填新的），任務檔附 `git diff` 請新的實作者接續。
 - Finalize 2 的重派（agy 的第二次失敗例外，見上）、Apply review 都沿用該 issue 目前的實作者與模型（task-state 的 `WORKER`、`WORK_MODEL`）；遇額度不足時同上詢問。
 - claude 第一次在某個資料夾啟動會詢問是否信任，終端機會變成 `blocked`，照上面的規則請使用者 attach 處理。agy 的信任由 `agy-launch.sh` 自動寫入（只限本 repo 的 issue worktree），仍出現信任詢問時一樣請使用者處理。
-- `rw-claude`、`rw-claude-opus` 只自動接受編輯，git／gh／hc 一律禁止；它要跑其他指令（例如 verify）時會停在權限詢問，同樣請使用者 attach 決定。
+- `rw-claude`、`rw-claude-opus` 以 auto mode 執行（不用逐一審核指令），git／gh／hc 一律禁止；auto mode 擋下的動作或仍出現的權限詢問，同樣請使用者 attach 決定。
 - Antigravity 實作時，commit 訊息註明 `Implemented by Antigravity via rw-ai-workflow`；Claude Sonnet 實作時註明 `Implemented by Claude Sonnet via rw-ai-workflow`；Claude Opus 實作時註明 `Implemented by Claude Opus via rw-ai-workflow`。
 
 ## 主對話：規劃與派工
