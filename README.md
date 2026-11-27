@@ -1,6 +1,6 @@
 # rw-ai-workflow
 
-**Version:** 0.2.9
+**Version:** 0.2.10
 
 A Claude Code plugin for a three-agent workflow on GitHub issues, with every agent running as a herdr core (`hc`) terminal:
 
@@ -65,7 +65,7 @@ agy's trust does not cover subfolders, so `agy-launch.sh` adds each issue worktr
 |---|---|
 | `開跑 #N` | agy or Codex (routed by complexity) implements issue N in `~/worktree/<owner>__<repo>/issue-N`, Claude runs verify on the host, pushes `ai/issue-N`, opens a draft PR, agy reviews |
 | `開跑 #N agy` / `開跑 #N codex` / `開跑 #N claude` (Sonnet) / `開跑 #N opus` or `claude work` (Opus) | Same, with that implementer (optionally `開跑 #N agy gemini-4-neon-xhigh` to pick the model) |
-| `派工 #N #M` | From the main conversation: one issue Claude terminal per issue, each reporting back with one line |
+| `派工 #N #M` | From the main conversation: one issue Claude terminal per issue (Sonnet; Opus only after Claude asks you), each reporting back with one line |
 | `PR #X 有 comment` | Claude turns your review comments into a fix brief for the same implementer |
 
 If the implementer (agy or Codex) hits its usage limit, Claude stops and asks: the other implementer, Claude Sonnet, Claude Opus, or wait.
