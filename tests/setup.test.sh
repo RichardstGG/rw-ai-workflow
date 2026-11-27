@@ -12,7 +12,7 @@ check "hc server down: no templates" "$(ls "$dst" 2>/dev/null)" ""
 run
 check "setup: exit 0" "$code" 0
 check_has "hc server status checked" "$(cat "$STUB_LOG")" "hc server status"
-for n in rw-codex rw-claude rw-agy-work rw-agy-review rw-agy-review-lite; do
+for n in rw-codex rw-claude rw-claude-opus rw-agy-work rw-agy-review rw-agy-review-lite; do
   check "installed $n" "$( [ -f "$dst/$n.md" ] && echo yes)" yes
 done
 check_lacks "placeholder replaced" "$(cat "$dst"/*.md)" "__S__"

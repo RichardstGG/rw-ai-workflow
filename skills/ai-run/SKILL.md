@@ -1,6 +1,6 @@
 ---
 name: ai-run
-description: Run one ai:ready GitHub issue through Antigravity or Codex (routed by complexity; Claude Sonnet on request) in its own worktree outside the repo, all agents as herdr core (hc) terminals - verify on the host, open a draft PR, get an Antigravity review, and apply the user's review comments; from a version's main conversation, plan issues and dispatch each one ("派工 #N"). Triggers - "開跑 #N", "派工 #N", "PR #X 有 comment", "agy work".
+description: Run one ai:ready GitHub issue through Antigravity or Codex (routed by complexity; Claude Sonnet or Opus on request) in its own worktree outside the repo, all agents as herdr core (hc) terminals - verify on the host, open a draft PR, get an Antigravity review, and apply the user's review comments; from a version's main conversation, plan issues and dispatch each one ("派工 #N"). Triggers - "開跑 #N", "派工 #N", "PR #X 有 comment", "agy work", "claude work".
 ---
 
 分工：Claude 規劃、在 host 驗證、commit／push、開 draft PR；實作者依複雜度分流（見「實作者」）：一般 issue 交給 Antigravity（agy），有必要的才用 Codex；兩者都在每個 issue 專屬的 worktree 內實作。agy 也做 review。使用者 review 並 merge。
@@ -30,8 +30,8 @@ description: Run one ai:ready GitHub issue through Antigravity or Codex (routed 
 - 不要 `hc server stop|restart`。結束的終端機用 `hc rm` 移除；要停掉還在跑的用 `hc kill` 再 `hc rm`。
 
 ## 實作者
-- 實作者就是 hc template：`rw-agy-work`（Antigravity）、`rw-codex`（Codex）、`rw-claude`（Claude Sonnet，只在使用者指定時用）。template 已含 worker 規則與報告格式，任務檔只要放 issue 的內容。
-- **分流**：使用者指定（「開跑 #N agy」／「agy work」／「開跑 #N codex」／「開跑 #N claude」）就照指定。沒指定時由主控的 Claude（派工的主 Claude；使用者直接對 issue Claude 說「開跑 #N」時就是它）讀 issue 判斷，**預設 agy，有必要才用 Codex**：
+- 實作者就是 hc template：`rw-agy-work`（Antigravity）、`rw-codex`（Codex）、`rw-claude`（Claude Sonnet）、`rw-claude-opus`（Claude Opus，effort high）；兩個 Claude 都只在使用者指定時用，從不自動分流。template 已含 worker 規則與報告格式，任務檔只要放 issue 的內容。
+- **分流**：使用者指定（「開跑 #N agy」／「agy work」／「開跑 #N codex」／「開跑 #N claude」／「開跑 #N sonnet」→ Sonnet；「claude work」／「開跑 #N opus」→ Opus）就照指定。沒指定時由主控的 Claude（派工的主 Claude；使用者直接對 issue Claude 說「開跑 #N」時就是它）讀 issue 判斷，**預設 agy，有必要才用 Codex**：
   - agy：Scope 是少數幾個檔案、issue 已寫明做法、照著改加上補測試就能完成（文件、設定、文字、單一函式或腳本的修正、照既有模式加小功能）。
   - Codex：要跨多個模組推理或重構、要自己追 bug 根因、牽涉併發／安全／資料遷移、測試難寫，或 issue 只寫目標沒寫做法。
   - 具體模型也由主控的 Claude 依難度決定：agy 從 `agy models` 選（例如簡單用 `gemini-4-neon-medium`、一般 `gemini-4-neon-high`、偏難 `gemini-4-neon-xhigh`）；Codex 預設用 `~/.codex/config.toml` 的模型（sol），要換才指定。不指定模型就用各自的預設。
@@ -42,12 +42,13 @@ description: Run one ai:ready GitHub issue through Antigravity or Codex (routed 
 - **實作者額度用完**（worker 沒寫報告，`hc read <r>-N-work --lines 200` 提到 usage limit／quota／rate limit；agy 和 Codex 都一樣，不計入失敗次數）→ 停下來問使用者，不自動改派：
   1. 另一個實作者（agy 用完就 Codex `rw-codex`，Codex 用完就 Antigravity `rw-agy-work`）
   2. Claude Sonnet（`rw-claude`）
-  3. 等額度恢復
+  3. Claude Opus（`rw-claude-opus`）
+  4. 等額度恢復
   改派前先 `hc kill`／`hc rm` 舊的 worker，`$S/task-state.sh N WORK_MODEL=`（舊模型不適用新的實作者；要指定就填新的），任務檔附 `git diff` 請新的實作者接續。
 - Finalize 2 的重派（agy 的第二次失敗例外，見上）、Apply review 都沿用該 issue 目前的實作者與模型（task-state 的 `WORKER`、`WORK_MODEL`）；遇額度不足時同上詢問。
 - claude 第一次在某個資料夾啟動會詢問是否信任，終端機會變成 `blocked`，照上面的規則請使用者 attach 處理。agy 的信任由 `agy-launch.sh` 自動寫入（只限本 repo 的 issue worktree），仍出現信任詢問時一樣請使用者處理。
-- `rw-claude` 只自動接受編輯，git／gh／hc 一律禁止；它要跑其他指令（例如 verify）時會停在權限詢問，同樣請使用者 attach 決定。
-- Antigravity 實作時，commit 訊息註明 `Implemented by Antigravity via rw-ai-workflow`；Claude Sonnet 實作時註明 `Implemented by Claude Sonnet via rw-ai-workflow`。
+- `rw-claude`、`rw-claude-opus` 只自動接受編輯，git／gh／hc 一律禁止；它要跑其他指令（例如 verify）時會停在權限詢問，同樣請使用者 attach 決定。
+- Antigravity 實作時，commit 訊息註明 `Implemented by Antigravity via rw-ai-workflow`；Claude Sonnet 實作時註明 `Implemented by Claude Sonnet via rw-ai-workflow`；Claude Opus 實作時註明 `Implemented by Claude Opus via rw-ai-workflow`。
 
 ## 主對話：規劃與派工
 一個大版本開一個主對話（主 Claude，使用者用 `hc run --bg --name main --cwd <主 checkout> claude` 啟動並 attach），只負責討論、開 issue、派工、追進度；每個 issue 交給一個 issue Claude 跑完，主對話不讀 diff、不跑驗證，以免吃掉 context。
@@ -74,7 +75,7 @@ description: Run one ai:ready GitHub issue through Antigravity or Codex (routed 
    失敗 → 重派一次（agy 第二次失敗改派 Codex，見「實作者」）：`hc kill`／`hc rm <r>-N-work`，任務檔附 issue 全文、`git -C "$wt" diff`、失敗 log，再照 Dispatch 6 啟動。worker 還沒開始就結束（啟動失敗）不計入次數。
 3. 在 `$wt` 內只 `git add -- <FILES 列出的路徑>`，確認 `git status --porcelain` 沒有 FILES 以外的變更；commit（用 COMMIT_MESSAGE，非 Codex 時附上「實作者」的 Implemented by 那行）。`git push -u origin ai/issue-N`。
 4. `gh pr create --draft --repo <repo> --base <base> --head ai/issue-N --title ... --body ...`
-   body：🤖 標記、`Closes #N`、`Worker: Codex`／`Worker: Antigravity`／`Worker: Claude Sonnet`（附模型；agy 失敗兩次後改派的寫明）、SUMMARY、TESTS、ENV_LIMITED 與 QUESTIONS（待人工驗證的項目）。`$S/task-state.sh N PR=<url>`。
+   body：🤖 標記、`Closes #N`、`Worker: Codex`／`Worker: Antigravity`／`Worker: Claude Sonnet`／`Worker: Claude Opus`（附模型；agy 失敗兩次後改派的寫明）、SUMMARY、TESTS、ENV_LIMITED 與 QUESTIONS（待人工驗證的項目）。`$S/task-state.sh N PR=<url>`。
 5. `gh issue edit N --remove-label ai:in-progress --add-label ai:review`
 6. Review：`$S/hc-spawn.sh N review rw-agy-review`（不帶任務檔；prompt 由 `agy-launch.sh` 組好），照「hc 使用規則」wait。agy 只讀 worktree，把結果寫到 `$log/review.md`。
    - `$log/review.md` 有內容 → `$S/post-review.sh <PR URL> $log/review.md`（在 worktree 內執行；標題的模型名稱由 `agy-launch.sh` 記錄的實際模型決定）。它貼 PR comment；結論是 APPROVE 時把 PR 轉成 ready for review，否則維持 draft。把結果告訴使用者。
