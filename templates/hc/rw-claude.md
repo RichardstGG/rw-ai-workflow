@@ -1,7 +1,7 @@
 ---
 name: rw-claude
 description: Claude Sonnet implements one issue in its worktree (when Codex is out of quota)
-command: claude --model sonnet --permission-mode acceptEdits --disallowedTools "Bash(git:*)" "Bash(gh:*)" "Bash(hc:*)"
+command: claude --model sonnet --permission-mode auto --disallowedTools "Bash(git:*)" "Bash(gh:*)" "Bash(hc:*)"
 ---
 ## Worker rules
 - Only modify the paths listed in the issue's Scope (Scope limits writes; reading is unrestricted).

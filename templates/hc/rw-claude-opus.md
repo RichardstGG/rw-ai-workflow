@@ -1,7 +1,7 @@
 ---
 name: rw-claude-opus
 description: Claude Opus implements one issue in its worktree (only when the user names it)
-command: claude --model opus --effort high --permission-mode acceptEdits --disallowedTools "Bash(git:*)" "Bash(gh:*)" "Bash(hc:*)"
+command: claude --model opus --effort high --permission-mode auto --disallowedTools "Bash(git:*)" "Bash(gh:*)" "Bash(hc:*)"
 ---
 ## Worker rules
 - Only modify the paths listed in the issue's Scope (Scope limits writes; reading is unrestricted).

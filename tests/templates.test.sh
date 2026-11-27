@@ -10,8 +10,8 @@ for n in rw-codex rw-claude rw-claude-opus rw-agy-work rw-agy-review rw-agy-revi
   check_has "$n: has description" "$( [ -f "$f" ] && field "$f" description)" " "
 done
 check "rw-codex command" "$(field "$D/rw-codex.md" command 2>/dev/null)" "bash __S__/codex-launch.sh"
-check "rw-claude command" "$(field "$D/rw-claude.md" command 2>/dev/null)" 'claude --model sonnet --permission-mode acceptEdits --disallowedTools "Bash(git:*)" "Bash(gh:*)" "Bash(hc:*)"'
-check "rw-claude-opus command" "$(field "$D/rw-claude-opus.md" command 2>/dev/null)" 'claude --model opus --effort high --permission-mode acceptEdits --disallowedTools "Bash(git:*)" "Bash(gh:*)" "Bash(hc:*)"'
+check "rw-claude command" "$(field "$D/rw-claude.md" command 2>/dev/null)" 'claude --model sonnet --permission-mode auto --disallowedTools "Bash(git:*)" "Bash(gh:*)" "Bash(hc:*)"'
+check "rw-claude-opus command" "$(field "$D/rw-claude-opus.md" command 2>/dev/null)" 'claude --model opus --effort high --permission-mode auto --disallowedTools "Bash(git:*)" "Bash(gh:*)" "Bash(hc:*)"'
 check "rw-agy-work command" "$(field "$D/rw-agy-work.md" command 2>/dev/null)" "bash __S__/agy-launch.sh work"
 check "rw-agy-review command" "$(field "$D/rw-agy-review.md" command 2>/dev/null)" "bash __S__/agy-launch.sh review"
 check "rw-agy-review-lite command" "$(field "$D/rw-agy-review-lite.md" command 2>/dev/null)" "bash __S__/agy-launch.sh review gemini-4-neon-medium"

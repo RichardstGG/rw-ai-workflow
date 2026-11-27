@@ -1,6 +1,6 @@
 # rw-ai-workflow
 
-**Version:** 0.2.8
+**Version:** 0.2.9
 
 A Claude Code plugin for a three-agent workflow on GitHub issues, with every agent running as a herdr core (`hc`) terminal:
 
