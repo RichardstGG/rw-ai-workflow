@@ -25,6 +25,10 @@ out=$(HC_RUN_OUT='{"address":"t30","agent":"claude","state":"live","turn":0}' \
 check "issue without first_message: prints the terminal name" "$out" roadscope-101
 check_has "issue without first_message: state records the terminal" "$(cat "$state")" "TERM_ISSUE=roadscope-101"
 
+rm "$state"
+"$S/hc-spawn.sh" 101 issue "claude --model opus --effort high" "$T/task.md" >/dev/null; run=$(last_run)
+check_has "issue on Opus: program args then task last" "$run" "claude --model opus --effort high Implement issue 101"
+
 code=0; "$S/hc-spawn.sh" 101 work rw-codex "$T/task.md" >/dev/null 2>"$T/err" || code=$?
 check "work without a worktree: usage error" "$code" 64
 
@@ -86,7 +90,7 @@ code=0; "$S/hc-spawn.sh" 101 boss claude >/dev/null 2>&1 || code=$?
 check "unknown role: usage error" "$code" 64
 
 # only the workflow's own programs: an allowed hc-spawn.sh must not run arbitrary commands
-for bad in "work|gh pr merge 5" "verify|bash -c x" "issue|bash" "review|codex" "work|rw-codex; rm -rf x" "verify|bash /other/verify.sh"; do
+for bad in "work|gh pr merge 5" "verify|bash -c x" "issue|bash" "issue|claude --model opus" "issue|claude --model fable" "review|codex" "work|rw-codex; rm -rf x" "verify|bash /other/verify.sh"; do
   : > "$STUB_LOG"; code=0; "$S/hc-spawn.sh" 101 "${bad%%|*}" "${bad#*|}" >/dev/null 2>&1 || code=$?
   check "refuses ${bad%%|*} '${bad#*|}'" "$code" 64
   check "refuses ${bad%%|*} '${bad#*|}': no hc run" "$(grep -c '^hc run' "$STUB_LOG" || true)" 0
